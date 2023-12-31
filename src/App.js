@@ -15,6 +15,7 @@ import DestinationDetails from "./components/DestinationDetails";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -27,19 +28,20 @@ function App() {
       } catch (error) {
         console.error(error);
         // Handle error here
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkSession();
   }, []);
 
-  if (isLoggedIn === null) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return <div>Loading...</div>; // Or replace with a loading spinner
   }
 
   return (
     <Router>
-      <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
       <Routes>
         <Route
           path="/"
@@ -51,25 +53,48 @@ function App() {
             )
           }
         />
-        <Route
-          path="/login"
-          element={isLoggedIn ? <Navigate to="/dashboard" /> : <LoginForm />}
-        />
+        <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegistrationForm />} />
         <Route
           path="/dashboard"
-          element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
+          element={
+            isLoggedIn ? (
+              <div>
+                <Navbar isLoggedIn={isLoggedIn} />
+                <Dashboard />
+              </div>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
         <Route
           path="/destinations"
-          element={isLoggedIn ? <Destinations /> : <Navigate to="/login" />}
+          element={
+            isLoggedIn ? (
+              <div>
+                <Navbar isLoggedIn={isLoggedIn} />
+                <Destinations />
+              </div>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
         <Route
           path="/destination/:id"
           element={
-            isLoggedIn ? <DestinationDetails /> : <Navigate to="/login" />
+            isLoggedIn ? (
+              <div>
+                <Navbar isLoggedIn={isLoggedIn} />
+                <DestinationDetails />
+              </div>
+            ) : (
+              <Navigate to="/login" />
+            )
           }
         />
+        <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </Router>
   );

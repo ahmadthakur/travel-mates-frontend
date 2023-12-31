@@ -12,6 +12,8 @@ import {
   WiStrongWind,
   WiSunrise,
   WiSunset,
+  WiBarometer,
+  WiHorizonAlt,
 } from "react-icons/wi";
 import {
   Box,
@@ -27,7 +29,9 @@ import {
   Icon,
   Grid,
   GridItem,
+  Spinner,
   Spacer,
+  useMediaQuery,
 } from "@chakra-ui/react";
 
 function DestinationDetails() {
@@ -35,6 +39,8 @@ function DestinationDetails() {
   const destination = location.state.destination;
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
+  const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
+  const [isCelsius, setIsCelsius] = useState(true);
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -66,8 +72,36 @@ function DestinationDetails() {
   }, [destination]);
 
   if (!weather) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        height="100vh"
+      >
+        <Spinner
+          size="xl"
+          speed="0.65s"
+          color="blue.500"
+          emptyColor="gray.200"
+          thickness="4px"
+        />
+        <Text mt={4} fontSize="lg" fontWeight="semibold" color="gray.500">
+          Loading...
+        </Text>
+      </Box>
+    );
   }
+
+  const toggleTemperatureUnit = () => {
+    setIsCelsius(!isCelsius);
+  };
+
+  const temperature = isCelsius
+    ? Math.round(weather.main.temp)
+    : Math.round((weather.main.temp * 9) / 5 + 32);
+  const temperatureUnit = isCelsius ? "°C" : "°F";
 
   const weatherIconMap = {
     "01d": "CLEAR_DAY",
@@ -105,85 +139,106 @@ function DestinationDetails() {
   });
 
   return (
-    <VStack spacing={8} align="start">
-      <Box
-        bg="white"
-        p={8}
-        borderRadius="md"
-        boxShadow="sm"
-        maxW="3xl"
-        m="auto"
-      >
+    <VStack
+      spacing={8}
+      align="start"
+      width="100%"
+      maxW={isSmallScreen ? "90%" : "60%"}
+      m="auto"
+    >
+      <Box bg="white" p={8} borderRadius="md" boxShadow="sm" width="100%">
         <VStack spacing={8} align="start">
-          <Heading size="2xl">{destination.name}</Heading>
-          <Text fontSize="lg">{destination.description}</Text>
+          <Flex justify="space-between" align="center" width="100%">
+            <Heading size={isSmallScreen ? "xl" : "2xl"} color="gray.800">
+              {destination.name}
+            </Heading>
+            <Button colorScheme="gray" size={isSmallScreen ? "sm" : "lg"}>
+              Plan a Trip
+            </Button>
+          </Flex>
+          <Text fontSize="lg" color="gray.600">
+            {destination.description}
+          </Text>
           <Image
             src={destination.image_url}
             alt={destination.name}
-            boxSize="300px"
+            boxSize={isSmallScreen ? "200px" : "300px"}
             objectFit="cover"
             borderRadius="md"
             width="100%"
           />
 
           {/*-----------------------------------------------------WEATHER------------------------------------------------------*/}
-          <Box
-            p={8}
-            borderRadius="md"
-            boxShadow="sm"
-            maxW="3xl"
-            m="auto"
-            boxSize="700px"
-          >
+          <Box p={8} borderRadius="md" boxShadow="sm" width="100%">
             <VStack spacing={8} align="start">
-              <Heading size="xl">Today's Weather</Heading>
-              <Flex width="100%">
-                <ReactAnimatedWeather
-                  icon={weatherIcon}
-                  color="#000"
-                  size={100}
-                  animate={true}
-                  style={{ maxWidth: "100%", maxHeight: "100%" }}
-                />
-                <Spacer />
-                <Text fontSize="6xl" fontWeight="bold">
-                  {weather.main.temp}°C
-                </Text>
+              <Heading size="xl" color="gray.800">
+                Today's Weather at {destination.name}
+              </Heading>
+              <Flex
+                direction={isSmallScreen ? "column" : "row"}
+                align="center"
+                justify="space-between"
+                width="100%"
+              >
+                <Box align="center">
+                  <ReactAnimatedWeather
+                    icon={weatherIcon}
+                    color="#000"
+                    size={isSmallScreen ? 50 : 100}
+                    animate={true}
+                  />
+                  <Text
+                    fontSize={isSmallScreen ? "4xl" : "6xl"}
+                    fontWeight="bold"
+                    color="gray.700"
+                    onClick={toggleTemperatureUnit}
+                    cursor="pointer"
+                  >
+                    {temperature}
+                    {temperatureUnit}
+                  </Text>
+                </Box>
+                <VStack align="start" spacing={4}>
+                  <Text color="gray.500">{weather.weather[0].description}</Text>
+
+                  <HStack spacing={4}>
+                    <WiStrongWind />
+                    <Text color="gray.600">Wind: {weather.wind.speed} m/s</Text>
+                  </HStack>
+                  <HStack spacing={4}>
+                    <WiHumidity />
+                    <Text color="gray.600">
+                      Humidity: {weather.main.humidity}%
+                    </Text>
+                  </HStack>
+                  <HStack spacing={4}>
+                    <WiBarometer />
+                    <Text color="gray.600">
+                      Pressure: {weather.main.pressure} hPa
+                    </Text>
+                  </HStack>
+                  <HStack spacing={4}>
+                    <WiHorizonAlt />
+                    <Text color="gray.600">
+                      Visibility: {weather.visibility / 1000} km
+                    </Text>
+                  </HStack>
+                </VStack>
               </Flex>
-              <HStack spacing={8} wrap="wrap">
-                <VStack spacing={1} align="center">
-                  <Icon as={WiHumidity} boxSize={6} />
-                  <Text fontSize="md" fontWeight="bold">
-                    {weather.main.humidity}%
-                  </Text>
-                </VStack>
-                <VStack spacing={1} align="center">
-                  <Icon as={WiStrongWind} boxSize={6} />
-                  <Text fontSize="md" fontWeight="bold">
-                    {weather.wind.speed} m/s
-                  </Text>
-                </VStack>
-                <VStack spacing={1} align="center">
-                  <Icon as={WiSunrise} boxSize={6} />
-                  <Text fontSize="md" fontWeight="bold">
-                    {new Date(weather.sys.sunrise * 1000).toLocaleTimeString()}
-                  </Text>
-                </VStack>
-                <VStack spacing={1} align="center">
-                  <Icon as={WiSunset} boxSize={6} />
-                  <Text fontSize="md" fontWeight="bold">
-                    {new Date(weather.sys.sunset * 1000).toLocaleTimeString()}
-                  </Text>
-                </VStack>
+              <HStack spacing={8} wrap="wrap" justify="space-between">
+                {/* ... */}
               </HStack>
-              <Button colorScheme="blue" size="lg">
-                Plan a Trip
-              </Button>
+
               {/*-----------------------------------------------------MAP------------------------------------------------------*/}
               <MapContainer
                 center={[destination.latitude, destination.longitude]}
                 zoom={13}
-                style={{ height: "300px", width: "600px", margin: "0 auto" }}
+                style={{
+                  height: isSmallScreen ? "200px" : "400px", // Increase the height on larger screens
+                  width: "100%",
+                  margin: "0 auto",
+                  boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)", // Add a slight shadow
+                }}
                 scrollWheelZoom={false}
                 whenCreated={(mapInstance) => {
                   setTimeout(() => {
@@ -192,7 +247,7 @@ function DestinationDetails() {
                 }}
               >
                 <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" // Use a custom map style
                   attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                 />
                 <Marker

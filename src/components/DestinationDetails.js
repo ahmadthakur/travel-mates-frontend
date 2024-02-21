@@ -1,7 +1,7 @@
 import "../index.css";
 import "leaflet/dist/leaflet.css";
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactAnimatedWeather from "react-animated-weather";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -42,6 +42,8 @@ function DestinationDetails() {
   const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
   const [isCelsius, setIsCelsius] = useState(true);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchWeather = async () => {
       try {
@@ -66,7 +68,6 @@ function DestinationDetails() {
         // Handle error here
       }
     };
-
     fetchWeather();
     fetchForecast();
   }, [destination]);
@@ -152,7 +153,13 @@ function DestinationDetails() {
             <Heading size={isSmallScreen ? "xl" : "2xl"} color="gray.800">
               {destination.name}
             </Heading>
-            <Button colorScheme="gray" size={isSmallScreen ? "sm" : "lg"}>
+            <Button
+              colorScheme="teal"
+              size={isSmallScreen ? "sm" : "lg"}
+              onClick={() => {
+                navigate(`/plan/trip`, { state: { destination } });
+              }}
+            >
               Plan a Trip
             </Button>
           </Flex>

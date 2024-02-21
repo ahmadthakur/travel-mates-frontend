@@ -35,7 +35,7 @@ function Navbar(isLoggedIn) {
   const handleLogout = async () => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/users/logout`,
+        `${process.env.REACT_APP_SERVER_URL}/users/users/logout`,
         {},
         { withCredentials: true }
       );
@@ -62,7 +62,7 @@ function Navbar(isLoggedIn) {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/users/dashboard`,
+          `${process.env.REACT_APP_SERVER_URL}/users/users/dashboard`,
           { withCredentials: true }
         );
         setData(response.data);

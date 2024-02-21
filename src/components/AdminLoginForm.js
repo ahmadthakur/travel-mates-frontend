@@ -18,10 +18,7 @@ import {
 
 const Link = chakra(RouterLink);
 
-function RegistrationForm() {
-  const [first_name, setFirstName] = useState("");
-  const [last_name, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+function AdminLoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -31,15 +28,17 @@ function RegistrationForm() {
     event.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/users/users/register`,
-        { first_name, last_name, email, username, password },
+        `${process.env.REACT_APP_SERVER_URL}/admin/admin/login`,
+        { username, password },
         { withCredentials: true }
       );
       console.log(response.data);
-      navigate("/login");
+      localStorage.setItem("isAdminLoggedIn", "true");
+
+      navigate("/admin");
     } catch (error) {
       console.error(error);
-      setErrorMessage("Registration failed");
+      setErrorMessage("User does not exist or password is incorrect");
     }
   };
 
@@ -60,44 +59,21 @@ function RegistrationForm() {
         bg="white"
         maxWidth="400px"
         width="100%"
+        maxHeight="600px"
+        overflowY="auto"
       >
         <Heading size="lg" mb={4}>
-          Create Account
+          Admin Login
         </Heading>
+
         {errorMessage && (
           <Alert status="error" mb={4}>
             <AlertIcon />
             {errorMessage}
           </Alert>
         )}
+
         <VStack spacing={4}>
-          <FormControl id="firstName">
-            <FormLabel>First Name</FormLabel>
-            <Input
-              type="text"
-              value={first_name}
-              onChange={(e) => setFirstName(e.target.value)}
-              borderRadius="md"
-            />
-          </FormControl>
-          <FormControl id="lastName">
-            <FormLabel>Last Name</FormLabel>
-            <Input
-              type="text"
-              value={last_name}
-              onChange={(e) => setLastName(e.target.value)}
-              borderRadius="md"
-            />
-          </FormControl>
-          <FormControl id="email">
-            <FormLabel>Email</FormLabel>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              borderRadius="md"
-            />
-          </FormControl>
           <FormControl id="username">
             <FormLabel>Username</FormLabel>
             <Input
@@ -123,18 +99,19 @@ function RegistrationForm() {
             fontSize="md"
             width="100%"
           >
-            Register
+            Log In
           </Button>
         </VStack>
-        <Text fontSize="lg" color="gray.500" mt={4}>
-          Already have an account?{" "}
-          <Link to="/login" color="teal.500">
-            Log in
-          </Link>
-        </Text>
       </Box>
+      <Link
+        to="/login"
+        style={{ fontSize: "small", marginTop: "10px" }}
+        colorScheme="teal"
+      >
+        User Login
+      </Link>
     </Flex>
   );
 }
 
-export default RegistrationForm;
+export default AdminLoginForm;

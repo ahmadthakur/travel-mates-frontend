@@ -10,19 +10,22 @@ import {
   Avatar,
   Center,
   Spinner,
+  SimpleGrid,
 } from "@chakra-ui/react";
+import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [data, setData] = useState(null);
   const toast = useToast();
   const navigate = useNavigate();
+  const [trips, setTrips] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/users/dashboard`,
+          `${process.env.REACT_APP_SERVER_URL}/users/users/dashboard`,
           { withCredentials: true }
         );
         setData(response.data);
@@ -35,31 +38,32 @@ function Dashboard() {
     fetchData();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/users/logout`,
-        {},
+  useEffect(() => {
+    const fetchTrips = async () => {
+      const response = await axios.get(
+        `${process.env.REACT_APP_SERVER_URL}/api/trips/trips`,
         { withCredentials: true }
       );
-      toast({
-        title: "Logged out successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      navigate("/login");
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Logout failed.",
-        description: error.message,
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
+      const tripsWithDestinations = await Promise.all(
+        response.data.map(async (trip) => {
+          try {
+            const destinationResponse = await axios.get(
+              `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations/${trip.destination_id}`
+            );
+            return { ...trip, destination: destinationResponse.data };
+          } catch (error) {
+            console.error("Error fetching destination data:", error);
+            // Return the trip without the destination data if an error occurs
+            return trip;
+          }
+        })
+      );
+      setTrips(tripsWithDestinations);
+      console.log(tripsWithDestinations);
+    };
+
+    fetchTrips();
+  }, []);
 
   if (!data) {
     return (
@@ -85,17 +89,50 @@ function Dashboard() {
   }
 
   return (
-    <Center height="100vh">
-      <VStack spacing={5} align="start">
+    <Center height="100vh" bg="gray.100">
+      <VStack spacing={8} align="start">
         <Avatar
           name={`${data.user.first_name} ${data.user.last_name}`}
           size="xl"
+          bg="teal.500"
         />
-        <Heading>Welcome, {data.user.username}!</Heading>
-        <Text>Your email is {data.user.email}</Text>
-        <Button onClick={handleLogout} colorScheme="teal">
-          Logout
-        </Button>
+        <Heading as="h1" size="xl" color="teal.800">
+          Welcome, {data.user.username}!
+        </Heading>
+        <Text fontSize="lg" color="gray.600">
+          Your email is {data.user.email}
+        </Text>
+        <Heading as="h2" size="lg" color="teal.600">
+          Your Trips
+        </Heading>
+        <SimpleGrid columns={3} spacing={8}>
+          {trips.map((trip) => (
+            <Box
+              key={trip.id}
+              bg="white"
+              p={4}
+              shadow="md"
+              borderWidth="1px"
+              borderRadius="md"
+            >
+              <Heading as="h3" size="md" color="teal.700">
+                {trip.destination.name}
+              </Heading>
+              <Text mt={3} fontSize="sm" color="gray.500">
+                {trip.start_date} - {trip.end_date}
+              </Text>
+              <Text mt={3} fontSize="sm" color="gray.500">
+                Notes: {trip.notes}
+              </Text>
+              <Button leftIcon={<EditIcon />} colorScheme="teal" mt={3}>
+                Edit
+              </Button>
+              <Button leftIcon={<DeleteIcon />} colorScheme="red" mt={3}>
+                Delete
+              </Button>
+            </Box>
+          ))}
+        </SimpleGrid>
       </VStack>
     </Center>
   );

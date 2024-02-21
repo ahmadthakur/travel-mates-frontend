@@ -18,7 +18,7 @@ function Destinations() {
     const fetchDestinations = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/api/destinations`
+          `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`
         );
         setDestinations(response.data);
       } catch (error) {
@@ -34,6 +34,7 @@ function Destinations() {
 
   const handleMoreInfoClick = (destination) => {
     navigate(`/destination/${destination.id}`, { state: { destination } });
+    console.log(destination);
   };
 
   return (
@@ -69,7 +70,7 @@ function Destinations() {
                 </Text>
               </Box>
               <Button
-                colorScheme="blue"
+                colorScheme="teal"
                 mt={6}
                 onClick={() => handleMoreInfoClick(destination)}
               >

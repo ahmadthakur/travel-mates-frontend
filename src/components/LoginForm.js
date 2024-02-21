@@ -28,14 +28,14 @@ function LoginForm() {
     event.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/users/login`,
+        `${process.env.REACT_APP_SERVER_URL}/users/users/login`,
         { username, password },
         { withCredentials: true }
       );
       console.log(response.data);
       localStorage.setItem("isLoggedIn", "true");
 
-      navigate("/destinations");
+      navigate("/");
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");
@@ -72,6 +72,7 @@ function LoginForm() {
             {errorMessage}
           </Alert>
         )}
+
         <VStack spacing={4}>
           <FormControl id="username">
             <FormLabel>Username</FormLabel>
@@ -108,6 +109,13 @@ function LoginForm() {
           </Link>
         </Text>
       </Box>
+      <Link
+        to="/admin/login"
+        style={{ fontSize: "small", marginTop: "10px" }}
+        colorScheme="teal"
+      >
+        Admin Login
+      </Link>
     </Flex>
   );
 }

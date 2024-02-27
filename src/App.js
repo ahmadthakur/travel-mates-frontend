@@ -5,6 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { Spinner } from "@chakra-ui/react";
+
 import axios from "axios";
 import Navbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
@@ -19,6 +21,7 @@ import AdminUsersPanel from "./components/AdminUsersPanel";
 import NotFoundPage from "./components/NotFoundPage";
 import PlanTrip from "./components/PlanTrip";
 import AdminTripsPanel from "./components/AdminTripsPanel";
+import AdminAccommodationsPanel from "./components/AdminAccommodationPanel";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -63,7 +66,18 @@ function App() {
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or replace with a loading spinner
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Spinner size="xl" />
+      </div>
+    );
   }
 
   return (
@@ -177,6 +191,18 @@ function App() {
             isAdminLoggedIn ? (
               <div>
                 <AdminTripsPanel />
+              </div>
+            ) : (
+              <Navigate to="/admin/login" />
+            )
+          }
+        />
+        <Route
+          path="/admin/accommodations/*"
+          element={
+            isAdminLoggedIn ? (
+              <div>
+                <AdminAccommodationsPanel />
               </div>
             ) : (
               <Navigate to="/admin/login" />

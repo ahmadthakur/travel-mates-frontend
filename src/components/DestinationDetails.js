@@ -169,7 +169,7 @@ function DestinationDetails() {
           <Image
             src={destination.image_url}
             alt={destination.name}
-            boxSize={isSmallScreen ? "200px" : "300px"}
+            boxSize={isSmallScreen ? "200px" : "100%"}
             objectFit="cover"
             borderRadius="md"
             width="100%"

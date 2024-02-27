@@ -33,9 +33,9 @@ function LoginForm() {
         { withCredentials: true }
       );
       console.log(response.data);
-      localStorage.setItem("isLoggedIn", "true");
 
       navigate("/");
+      window.location.reload();
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");

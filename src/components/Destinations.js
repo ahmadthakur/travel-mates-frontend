@@ -46,32 +46,34 @@ function Destinations() {
             borderRadius="lg"
             overflow="hidden"
             p={5}
-            bg="transparent"
-            maxW="300px" // Set the maximum width of the card
-            as={Flex} // Make the Box a flex container
-            direction="column" // Arrange the items in a column
-            justifyContent="space-between" // Distribute the space between the items
+            bg="gray.100" // Set the background color to slightly grey
+            boxShadow="md" // Add a shadow to the card
+            maxW="300px"
+            as={Flex}
+            direction="column"
+            justifyContent="space-between"
           >
             <Image
               src={destination.image_url}
               alt={destination.name}
-              width="100%" // Make the image take up the full width of the card
-              height="250px" // Make the image square
-              borderRadius="md" // Round the edges of the image
+              width="100%"
+              height="200px" // Adjust the height of the image
+              borderRadius="md"
               objectFit="cover"
+              mb={4} // Add some margin below the image
             />
-            <Text fontSize="2xl" fontWeight="bold" mt={4} color="black">
+            <Text fontSize="xl" fontWeight="bold" mb={2} color="black">
               {destination.name}
             </Text>
-            <Flex direction="column" justifyContent="space-between">
-              <Box>
-                <Text color="gray.600" mt={2} height="60px">
-                  {destination.description}
-                </Text>
+            <Flex direction="column" justifyContent="space-between" flex="1">
+              {" "}
+              {/* Add flex="1" */}
+              <Box overflowY="auto" maxH="180px">
+                <Text color="gray.600">{destination.description}</Text>
               </Box>
               <Button
                 colorScheme="teal"
-                mt={6}
+                mt={4}
                 onClick={() => handleMoreInfoClick(destination)}
               >
                 More Information

@@ -11,6 +11,7 @@ import {
   Td,
   Tr,
   Th,
+  useToast,
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import axios from "axios";
@@ -18,6 +19,7 @@ import axios from "axios";
 const AdminTripsPanel = () => {
   const { userId } = useParams();
   const [trips, setTrips] = useState([]);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +32,25 @@ const AdminTripsPanel = () => {
 
     fetchData();
   }, [userId]);
+
+  const handleDelete = async (tripId) => {
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_SERVER_URL}/api/trips/trips/${tripId}`,
+        { withCredentials: true }
+      );
+      setTrips(trips.filter((trip) => trip.id !== tripId));
+      toast({
+        title: "Trip deleted.",
+        description: "The trip has been successfully deleted.",
+        status: "success",
+        duration: 9000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete trip:", error);
+    }
+  };
 
   return (
     <Box p={5}>
@@ -58,7 +79,11 @@ const AdminTripsPanel = () => {
                 </Button>
               </Td>
               <Td>
-                <Button leftIcon={<DeleteIcon />} colorScheme="red">
+                <Button
+                  leftIcon={<DeleteIcon />}
+                  colorScheme="red"
+                  onClick={() => handleDelete(trip.id)}
+                >
                   Delete
                 </Button>
               </Td>

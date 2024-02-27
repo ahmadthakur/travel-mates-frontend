@@ -102,7 +102,7 @@ function AdminDashboard() {
           </Button>
 
           <Button
-            onClick={() => navigate("/accommodations")}
+            onClick={() => navigate("/admin/accommodations")}
             colorScheme="blue"
           >
             Accommodations

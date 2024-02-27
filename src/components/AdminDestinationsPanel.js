@@ -23,13 +23,18 @@ import {
   Tr,
   Th,
   Td,
+  useToast,
+  HStack,
 } from "@chakra-ui/react";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function AdminDestinationsPanel() {
   const [destinations, setDestinations] = useState([]);
   const [selectedDestination, setSelectedDestination] = useState(null);
+  const toast = useToast();
 
   const [name, setName] = useState(
     selectedDestination ? selectedDestination.name : ""
@@ -97,14 +102,33 @@ function AdminDestinationsPanel() {
 
   const handleCreate = async (newDestination) => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`,
-        newDestination,
-        { withCredentials: true }
-      );
+      await axios
+        .post(
+          `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`,
+          newDestination,
+          { withCredentials: true }
+        )
+        .then((response) => {
+          console.log(response);
+          toast({
+            title: "Destination created.",
+            description: "Destination successfully created.",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
+        });
       // Refresh destinations
     } catch (error) {
       console.error(error);
+      toast({
+        title: "An error occurred.",
+        description: "An error occurred while creating the destination.",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+
       // Handle error here
     }
   };
@@ -119,24 +143,57 @@ function AdminDestinationsPanel() {
         )
         .then((response) => {
           console.log(response);
+          toast({
+            title: "Destination updated.",
+            description: "Destination successfully updated.",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
         });
 
       // Refresh destinations
     } catch (error) {
       console.error(error);
+      toast({
+        title: "An error occurred.",
+        description: "An error occurred while updating the destination.",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
+
       // Handle error here
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations/${id}`,
-        { withCredentials: true }
-      );
+      await axios
+        .delete(
+          `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations/${id}`,
+          { withCredentials: true }
+        )
+        .then((response) => {
+          console.log(response);
+          toast({
+            title: "Destination deleted.",
+            description: "Destination successfully deleted.",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+          });
+        });
       // Refresh destinations
     } catch (error) {
       console.error(error);
+      toast({
+        title: "An error occurred.",
+        description: "An error occurred while deleting the destination.",
+        status: "error",
+        duration: 9000,
+        isClosable: true,
+      });
       // Handle error here
     }
   };
@@ -171,26 +228,31 @@ function AdminDestinationsPanel() {
               <Td>{destination.latitude}</Td>
               <Td>{destination.longitude}</Td>
               <Td>
-                <Button
-                  onClick={() => handleEdit(destination)}
-                  colorScheme="teal"
-                  mr={3}
-                >
-                  Edit
-                </Button>
+                <HStack spacing={3}>
+                  <Button
+                    onClick={() => handleEdit(destination)}
+                    colorScheme="teal"
+                    leftIcon={<EditIcon />}
+                    width="100px"
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  onClick={async () => {
-                    await handleDelete(destination.id);
-                    const updatedDestinations = destinations.filter(
-                      (d) => d.id !== destination.id
-                    );
-                    setDestinations(updatedDestinations);
-                  }}
-                  colorScheme="red"
-                >
-                  Delete
-                </Button>
+                  <Button
+                    onClick={async () => {
+                      await handleDelete(destination.id);
+                      const updatedDestinations = destinations.filter(
+                        (d) => d.id !== destination.id
+                      );
+                      setDestinations(updatedDestinations);
+                    }}
+                    colorScheme="red"
+                    leftIcon={<DeleteIcon />}
+                    width="100px"
+                  >
+                    Delete
+                  </Button>
+                </HStack>
               </Td>
             </Tr>
           ))}

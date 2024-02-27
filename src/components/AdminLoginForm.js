@@ -36,6 +36,7 @@ function AdminLoginForm() {
       localStorage.setItem("isAdminLoggedIn", "true");
 
       navigate("/admin");
+      window.location.reload();
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");

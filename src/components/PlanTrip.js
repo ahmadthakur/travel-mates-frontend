@@ -11,7 +11,7 @@ import {
   useToast,
   Spinner,
 } from "@chakra-ui/react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -25,6 +25,8 @@ function PlanTrip({ user }) {
   const [route, setRoute] = useState(null);
   const location = useLocation();
   const destination = location.state.destination;
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     destination_id: destination.id,
@@ -79,10 +81,6 @@ function PlanTrip({ user }) {
         formData,
         { withCredentials: true }
       );
-
-      console.log(response.data);
-
-      // If the request is successful, display a success toast
       toast({
         title: "Trip created.",
         description: "Your trip has been successfully created.",
@@ -90,6 +88,11 @@ function PlanTrip({ user }) {
         duration: 5000,
         isClosable: true,
       });
+
+      console.log(response.data);
+
+      // // Redirect the user to the dashboard
+      navigate("/dashboard");
     } catch (error) {
       // If there's an error, display an error toast
       toast({

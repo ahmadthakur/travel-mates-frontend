@@ -31,7 +31,6 @@ function Dashboard() {
         setData(response.data);
       } catch (error) {
         console.error(error);
-        // Handle error here
       }
     };
 
@@ -53,17 +52,38 @@ function Dashboard() {
             return { ...trip, destination: destinationResponse.data };
           } catch (error) {
             console.error("Error fetching destination data:", error);
-            // Return the trip without the destination data if an error occurs
             return trip;
           }
         })
       );
       setTrips(tripsWithDestinations);
-      console.log(tripsWithDestinations);
     };
 
     fetchTrips();
   }, []);
+
+  const handleDelete = async (tripId) => {
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_SERVER_URL}/api/trips/trips/${tripId}`,
+        { withCredentials: true }
+      );
+      setTrips(trips.filter((trip) => trip.id !== tripId));
+      toast({
+        title: "Trip deleted.",
+        description: "The trip has been successfully deleted.",
+        status: "success",
+        duration: 9000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete trip:", error);
+    }
+  };
+
+  const handleEdit = (tripId) => {
+    navigate(`/edit-trip/${tripId}`);
+  };
 
   if (!data) {
     return (
@@ -124,10 +144,20 @@ function Dashboard() {
               <Text mt={3} fontSize="sm" color="gray.500">
                 Notes: {trip.notes}
               </Text>
-              <Button leftIcon={<EditIcon />} colorScheme="teal" mt={3}>
+              <Button
+                leftIcon={<EditIcon />}
+                colorScheme="teal"
+                mt={3}
+                onClick={() => handleEdit(trip.id)}
+              >
                 Edit
               </Button>
-              <Button leftIcon={<DeleteIcon />} colorScheme="red" mt={3}>
+              <Button
+                leftIcon={<DeleteIcon />}
+                colorScheme="red"
+                mt={3}
+                onClick={() => handleDelete(trip.id)}
+              >
                 Delete
               </Button>
             </Box>

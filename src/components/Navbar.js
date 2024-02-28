@@ -16,14 +16,22 @@ import {
   useToast,
   Button,
   Spinner,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  Modal,
 } from "@chakra-ui/react";
-import { HamburgerIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, BellIcon } from "@chakra-ui/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
 
 function Navbar(isLoggedIn) {
   const [data, setData] = useState(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -58,6 +66,9 @@ function Navbar(isLoggedIn) {
     }
   };
 
+  const handleNotificationsOpen = () => setIsNotificationsOpen(true);
+  const handleNotificationsClose = () => setIsNotificationsOpen(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,12 +79,29 @@ function Navbar(isLoggedIn) {
         setData(response.data);
       } catch (error) {
         console.error(error);
-        // Handle error here
       }
     };
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_SERVER_URL}/api/notifications/notifications/`,
+          { withCredentials: true }
+        );
+        setNotifications(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchNotifications();
+    }
+  }, [isLoggedIn]);
 
   if (!data) {
     return (
@@ -97,7 +125,6 @@ function Navbar(isLoggedIn) {
       </Box>
     );
   }
-
   return (
     <Box as="nav" bg="white" p={5} position="sticky" top={0} zIndex={1}>
       <Stack
@@ -133,10 +160,12 @@ function Navbar(isLoggedIn) {
                         <IconButton
                           aria-label="Logout"
                           icon={<AiOutlineLogout />}
-                          onClick={handleLogout} // replace with your logout function
+                          onClick={handleLogout}
                         />
-                        {/* <Text fontWeight="bold">{`${data.user.first_name} ${data.user.last_name}`}</Text> */}
-                        {/* Add other menu items here */}
+                        <IconButton
+                          icon={<BellIcon />}
+                          onClick={handleNotificationsOpen}
+                        />
                       </VStack>
                     </DrawerBody>
                   </DrawerContent>
@@ -152,12 +181,45 @@ function Navbar(isLoggedIn) {
                 />
               </Link>
               <Text fontWeight="bold">{`${data.user.first_name} ${data.user.last_name}`}</Text>
+              <IconButton
+                icon={<BellIcon />}
+                onClick={handleNotificationsOpen}
+              />
               <Button onClick={handleLogout} colorScheme="teal">
                 Logout
               </Button>
             </Stack>
           ))}
       </Stack>
+
+      <Modal isOpen={isNotificationsOpen} onClose={handleNotificationsClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Notifications</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            {notifications.map((notification) => (
+              <Box
+                key={notification.id}
+                bg="white"
+                m={2}
+                p={4}
+                borderRadius="md"
+                boxShadow="md"
+                border="1px solid"
+                borderColor="gray.200"
+              >
+                <Text fontSize="lg" fontWeight="bold" mb={2}>
+                  {notification.message}
+                </Text>
+                <Text fontSize="sm" color="gray.500">
+                  {new Date(notification.createdAt).toLocaleDateString("en-GB")}
+                </Text>
+              </Box>
+            ))}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

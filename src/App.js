@@ -22,6 +22,7 @@ import NotFoundPage from "./components/NotFoundPage";
 import PlanTrip from "./components/PlanTrip";
 import AdminTripsPanel from "./components/AdminTripsPanel";
 import AdminAccommodationsPanel from "./components/AdminAccommodationPanel";
+import AdminNotificationsPanel from "./components/AdminNotificationsPanel";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -203,6 +204,18 @@ function App() {
             isAdminLoggedIn ? (
               <div>
                 <AdminAccommodationsPanel />
+              </div>
+            ) : (
+              <Navigate to="/admin/login" />
+            )
+          }
+        />
+        <Route
+          path="/admin/users/:UserID/notifications/*"
+          element={
+            isAdminLoggedIn ? (
+              <div>
+                <AdminNotificationsPanel />
               </div>
             ) : (
               <Navigate to="/admin/login" />

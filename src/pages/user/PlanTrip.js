@@ -18,6 +18,7 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 import { FaMap } from "react-icons/fa";
 import axios from "axios";
+import "../../index.css";
 
 function PlanTrip({ user }) {
   const [isLoading, setIsLoading] = useState(true);

@@ -8,21 +8,30 @@ import {
 import { Spinner } from "@chakra-ui/react";
 
 import axios from "axios";
+
+//import components
 import Navbar from "./components/Navbar";
-import LoginForm from "./components/LoginForm";
-import RegistrationForm from "./components/RegistrationForm";
-import Dashboard from "./components/Dashboard";
-import Destinations from "./components/Destinations";
-import DestinationDetails from "./components/DestinationDetails";
-import AdminLoginForm from "./components/AdminLoginForm";
-import AdminDashboard from "./components/AdminDashboard";
-import AdminDestinationsPanel from "./components/AdminDestinationsPanel";
-import AdminUsersPanel from "./components/AdminUsersPanel";
-import NotFoundPage from "./components/NotFoundPage";
-import PlanTrip from "./components/PlanTrip";
-import AdminTripsPanel from "./components/AdminTripsPanel";
-import AdminAccommodationsPanel from "./components/AdminAccommodationPanel";
-import AdminNotificationsPanel from "./components/AdminNotificationsPanel";
+import Footer from "./components/Footer";
+
+//import pages
+import NotFoundPage from "./pages/NotFoundPage";
+
+//import user pages
+import LoginForm from "./pages/user/LoginForm";
+import RegistrationForm from "./pages/user/RegistrationForm";
+import Dashboard from "./pages/user/Dashboard";
+import Destinations from "./pages/user/Destinations";
+import DestinationDetails from "./pages/user/DestinationDetails";
+import PlanTrip from "./pages/user/PlanTrip";
+
+//import admin pages
+import AdminLoginForm from "./pages/admin/AdminLoginForm";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDestinationsPanel from "./pages/admin/AdminDestinationsPanel";
+import AdminUsersPanel from "./pages/admin/AdminUsersPanel";
+import AdminTripsPanel from "./pages/admin/AdminTripsPanel";
+import AdminAccommodationsPanel from "./pages/admin/AdminAccommodationPanel";
+import AdminNotificationsPanel from "./pages/admin/AdminNotificationsPanel";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -225,6 +234,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />{" "}
         {/* This should be the last Route */}
       </Routes>
+      <Footer />
     </Router>
   );
 }

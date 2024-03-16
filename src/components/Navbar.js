@@ -25,8 +25,9 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon, BellIcon } from "@chakra-ui/icons";
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
+import { UserAuthContext } from "../utils/UserAuthContext";
 
 function Navbar(isLoggedIn) {
   const [data, setData] = useState(null);
@@ -39,6 +40,7 @@ function Navbar(isLoggedIn) {
   const handleClose = () => setIsOpen(false);
   const navigate = useNavigate();
   const toast = useToast();
+  const { setIsAuthenticated } = useContext(UserAuthContext);
 
   const handleLogout = async () => {
     try {
@@ -53,6 +55,10 @@ function Navbar(isLoggedIn) {
         duration: 3000,
         isClosable: true,
       });
+
+      sessionStorage.removeItem("user");
+      setIsAuthenticated(false);
+
       navigate("/login");
     } catch (error) {
       console.error(error);

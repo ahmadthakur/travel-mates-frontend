@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { EditIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../../components/Navbar";
 
 function Dashboard() {
   const [data, setData] = useState(null);
@@ -87,6 +88,7 @@ function Dashboard() {
 
   if (!data) {
     return (
+    
       <Box
         display="flex"
         flexDirection="column"
@@ -94,6 +96,7 @@ function Dashboard() {
         justifyContent="center"
         height="100vh"
       >
+
         <Spinner
           size="xl"
           speed="0.65s"

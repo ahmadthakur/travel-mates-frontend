@@ -15,6 +15,7 @@ import {
   AlertIcon,
   chakra,
 } from "@chakra-ui/react";
+import { UserAuthContext } from "../../utils/UserAuthContext";
 
 const Link = chakra(RouterLink);
 
@@ -23,6 +24,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const { setIsAuthenticated } = React.useContext(UserAuthContext);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,9 +35,11 @@ function LoginForm() {
         { withCredentials: true }
       );
       console.log(response.data);
+      setIsAuthenticated(true);
+      sessionStorage.setItem("user", JSON.stringify(response.data));
 
       navigate("/");
-      window.location.reload();
+    
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");

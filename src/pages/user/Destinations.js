@@ -18,7 +18,8 @@ function Destinations() {
     const fetchDestinations = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`
+          `${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`,
+          { withCredentials: true }
         );
         setDestinations(response.data);
       } catch (error) {

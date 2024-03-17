@@ -160,7 +160,7 @@ function AppContent() {
         element={<AdminProtectedRoute element={<AdminUsersPanel />} />}
       />
       <Route
-        path="/admin/trips"
+        path="/admin/users/:userId/trips"
         element={<AdminProtectedRoute element={<AdminTripsPanel />} />}
       />
       <Route
@@ -168,7 +168,7 @@ function AppContent() {
         element={<AdminProtectedRoute element={<AdminAccommodationsPanel />} />}
       />
       <Route
-        path="/admin/notifications"
+        path="/admin/users/:UserID/notifications"
         element={<AdminProtectedRoute element={<AdminNotificationsPanel />} />}
       />
       <Route path="*" element={<NotFoundPage />} />

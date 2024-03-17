@@ -64,7 +64,7 @@ function AdminNotificationsPanel() {
 
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]);
+  }, [UserID]);
 
   const handleEdit = (notification) => {
     setSelectedNotification(notification);

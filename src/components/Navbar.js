@@ -56,7 +56,7 @@ function Navbar(isLoggedIn) {
         isClosable: true,
       });
 
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("user");
       setIsAuthenticated(false);
 
       navigate("/login");
@@ -132,7 +132,7 @@ function Navbar(isLoggedIn) {
     );
   }
   return (
-    <Box as="nav" bg="white" p={5} position="sticky" top={0} zIndex={1}>
+    <Box as="nav" bg="white" px={8} py={4} position="fixed" top={0} my={4} left={8} right={8} zIndex={1} shadow="lg" borderRadius="xl">
       <Stack
         direction="row"
         spacing={8}

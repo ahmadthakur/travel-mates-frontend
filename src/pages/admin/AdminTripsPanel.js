@@ -29,6 +29,7 @@ import axios from "axios";
 
 const AdminTripsPanel = () => {
   const { userId } = useParams();
+  console.log(userId);
   const [trips, setTrips] = useState([]);
   const [selectedTrip, setSelectedTrip] = useState(null);
   const toast = useToast();

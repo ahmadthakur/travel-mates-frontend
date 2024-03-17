@@ -36,10 +36,9 @@ function LoginForm() {
       );
       console.log(response.data);
       setIsAuthenticated(true);
-      sessionStorage.setItem("user", JSON.stringify(response.data));
+      localStorage.setItem("user", JSON.stringify(response.data));
 
       navigate("/");
-    
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");

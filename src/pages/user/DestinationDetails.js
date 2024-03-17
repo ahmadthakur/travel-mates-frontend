@@ -34,13 +34,16 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 
-function DestinationDetails() {
+function DestinationDetails(props) {
   const location = useLocation();
   const destination = location.state.destination;
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
   const [isCelsius, setIsCelsius] = useState(true);
+
+
+  
 
   const navigate = useNavigate();
 
@@ -74,6 +77,7 @@ function DestinationDetails() {
 
   if (!weather) {
     return (
+      
       <Box
         display="flex"
         flexDirection="column"
@@ -140,12 +144,15 @@ function DestinationDetails() {
   });
 
   return (
-    <VStack
+    <>
+    {props.navbar}
+     <VStack 
       spacing={8}
       align="start"
       width="100%"
       maxW={isSmallScreen ? "90%" : "60%"}
       m="auto"
+      mt={40}
     >
       <Box bg="white" p={8} borderRadius="md" boxShadow="sm" width="100%">
         <VStack spacing={8} align="start">
@@ -269,6 +276,8 @@ function DestinationDetails() {
         </VStack>
       </Box>
     </VStack>
+    </>
+   
   );
 }
 

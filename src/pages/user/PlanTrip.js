@@ -20,7 +20,7 @@ import { FaMap } from "react-icons/fa";
 import axios from "axios";
 import "../../index.css";
 
-function PlanTrip({ user }) {
+function PlanTrip({ user, navbar}) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [route, setRoute] = useState(null);
@@ -158,12 +158,15 @@ function PlanTrip({ user }) {
   }, [currentLocation, destination]);
 
   return (
+    <>
+    {navbar}
     <Box
       boxShadow="xl" // Increase shadow for better depth perception
       p={6} // Increase padding for better spacing
       rounded="lg" // Larger border radius for softer edges
       bg="white"
       style={{ height: "100vh", width: "100%" }}
+      mt={20}
     >
       <Heading size="xl" mb={6}>
         <FaMap /> Plan a Trip to {destination.name}
@@ -234,6 +237,8 @@ function PlanTrip({ user }) {
         </Box>
       </Flex>
     </Box>
+    </>
+    
   );
 }
 

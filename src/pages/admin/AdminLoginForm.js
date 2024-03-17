@@ -15,6 +15,7 @@ import {
   AlertIcon,
   chakra,
 } from "@chakra-ui/react";
+import { AdminAuthContext } from "../../utils/AdminAuthContext";
 
 const Link = chakra(RouterLink);
 
@@ -23,6 +24,7 @@ function AdminLoginForm() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const { setIsAdminAuthenticated } = React.useContext(AdminAuthContext);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -33,10 +35,10 @@ function AdminLoginForm() {
         { withCredentials: true }
       );
       console.log(response.data);
-      localStorage.setItem("isAdminLoggedIn", "true");
+      setIsAdminAuthenticated(true);
+      localStorage.setItem("admin", JSON.stringify(response.data));
 
       navigate("/admin");
-      window.location.reload();
     } catch (error) {
       console.error(error);
       setErrorMessage("User does not exist or password is incorrect");

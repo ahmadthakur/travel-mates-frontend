@@ -8,7 +8,7 @@ export const UserAuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const savedUser = sessionStorage.getItem("user");
+        const savedUser = localStorage.getItem("user");
         if (savedUser) {
             setIsAuthenticated(true);
         }

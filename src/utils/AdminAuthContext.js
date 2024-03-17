@@ -8,7 +8,7 @@ export const AdminAuthProvider = ({ children }) => {
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
     useEffect(() => {
-        const savedAdmin = sessionStorage.getItem("admin");
+        const savedAdmin = localStorage.getItem("admin");
         if (savedAdmin) {
             setIsAdminAuthenticated(true);
         }

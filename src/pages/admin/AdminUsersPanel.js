@@ -84,7 +84,7 @@ function AdminUsersPanel() {
   };
 
   return (
-    <Box m={4} p={5}>
+    <Box m={4} p={5} height="100vh">
       <Heading mb={4}>Users</Heading>
       <Table variant="simple">
         <Thead>

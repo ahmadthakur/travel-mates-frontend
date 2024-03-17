@@ -64,8 +64,8 @@ const AdminProtectedRoute = ({ element }) => {
 };
 
 function AppContent() {
-  const { isAuthenticated, setIsAuthenticated } = useContext(UserAuthContext);
-  const { isAdminAuthenticated, setIsAdminAuthenticated } = useContext(AdminAuthContext);
+  const {isAuthenticated, setIsAuthenticated } = useContext(UserAuthContext);
+  const {isAdminAuthenticated,  setIsAdminAuthenticated } = useContext(AdminAuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
 
@@ -107,6 +107,7 @@ function AppContent() {
 
   if (isUserLoggedIn !== null) {
     setIsAuthenticated(isUserLoggedIn);
+    setUser(isUserLoggedIn.user);
     setLoading(false);
   } else {
     checkSession();

@@ -164,7 +164,7 @@ function AdminNotificationsPanel() {
   };
 
   return (
-    <Box m={4} p={5}>
+    <Box m={4} p={5} height="100vh">
       <Heading mb={4}>Notifications</Heading>
       <Button onClick={handleNew} colorScheme="blue">
         Create New Notification

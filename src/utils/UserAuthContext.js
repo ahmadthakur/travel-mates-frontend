@@ -20,6 +20,7 @@ export const UserAuthProvider = ({ children }) => {
     const value = {
         isAuthenticated,
         setIsAuthenticated,
+        savedUser: localStorage.getItem("user"),
     };
 
     return (

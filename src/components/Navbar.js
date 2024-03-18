@@ -1,46 +1,36 @@
-import axios from "axios";
+import { useContext, useState, useEffect } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+
 import {
   Box,
-  Stack,
-  Heading,
+  Flex,
   Avatar,
-  Text,
-  useMediaQuery,
+  HStack,
   IconButton,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerBody,
-  VStack,
-  useToast,
   Button,
-  Spinner,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  Modal,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useDisclosure,
+  useColorModeValue,
+  Stack,
+  useToast,
+  Text,
+  MenuDivider,
 } from "@chakra-ui/react";
-import { HamburgerIcon, BellIcon } from "@chakra-ui/icons";
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState, useContext } from "react";
-import { AiOutlineLogout } from "react-icons/ai";
+import { HamburgerIcon, CloseIcon, BellIcon } from "@chakra-ui/icons";
 import { UserAuthContext } from "../utils/UserAuthContext";
+import axios from "axios";
 
-function Navbar(isLoggedIn) {
-  const [data, setData] = useState(null);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleOpen = () => setIsOpen(true);
-  const handleClose = () => setIsOpen(false);
-  const navigate = useNavigate();
+export default function Simple() {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const { setIsAuthenticated } = useContext(UserAuthContext);
+  const navigate = useNavigate();
+
+  const [notifications, setNotifications] = useState([]);
+  const savedUser = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = async () => {
     try {
@@ -72,25 +62,6 @@ function Navbar(isLoggedIn) {
     }
   };
 
-  const handleNotificationsOpen = () => setIsNotificationsOpen(true);
-  const handleNotificationsClose = () => setIsNotificationsOpen(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/users/users/dashboard`,
-          { withCredentials: true }
-        );
-        setData(response.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -104,130 +75,126 @@ function Navbar(isLoggedIn) {
       }
     };
 
-    if (isLoggedIn) {
-      fetchNotifications();
-    }
-  }, [isLoggedIn]);
+    fetchNotifications();
+  }, []);
 
-  if (!data) {
-    return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        height="100vh"
-      >
-        <Spinner
-          size="xl"
-          speed="0.65s"
-          color="blue.500"
-          emptyColor="gray.200"
-          thickness="4px"
-        />
-        <Text mt={4} fontSize="lg" fontWeight="semibold" color="gray.500">
-          Loading...
-        </Text>
-      </Box>
-    );
-  }
   return (
-    <Box as="nav" bg="white" px={8} py={4} position="fixed" top={0} my={4} left={8} right={8} zIndex={1} shadow="lg" borderRadius="xl">
-      <Stack
-        direction="row"
-        spacing={8}
-        align="center"
-        justifyContent="space-between"
+    <>
+      <Box
+        bg={useColorModeValue("gray.100", "gray.900")}
+        px={4}
+        position="fixed"
+        top={0}
+        my={4}
+        left={4}
+        right={4}
+        zIndex={1}
+        shadow="lg"
+        borderRadius="xl"
       >
-        <Link to="/">
-          <Heading size="lg" color="teal.500">
-            Travel Mates
-          </Heading>
-        </Link>
+        <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
+          <IconButton
+            size={"md"}
+            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+            aria-label={"Open Menu"}
+            display={{ md: "none" }}
+            onClick={isOpen ? onClose : onOpen}
+          />
+          <HStack spacing={8} alignItems={"center"}>
+            <Link to="/">
+              <Box>Travel Mates</Box>
+            </Link>
+            <HStack
+              as={"nav"}
+              spacing={4}
+              display={{ base: "none", md: "flex" }}
+            >
+              <NavLink to={"/"}>Home</NavLink>
+              <NavLink to={"/about"}>About</NavLink>
+              <NavLink to={"/contact"}>Contact</NavLink>
+            </HStack>
+          </HStack>
 
-        {isLoggedIn &&
-          data &&
-          (isSmallScreen ? (
-            <>
-              <IconButton icon={<HamburgerIcon />} onClick={handleOpen} />
-              <Drawer isOpen={isOpen} onClose={handleClose}>
-                <DrawerOverlay>
-                  <DrawerContent>
-                    <DrawerCloseButton />
-                    <DrawerBody>
-                      <VStack spacing={4} mt={4}>
-                        <Link to="/dashboard">
-                          <Avatar
-                            name={`${data.user.first_name} ${data.user.last_name}`}
-                            size="sm"
-                            onClick={handleClose}
-                          />
-                        </Link>
-                        <IconButton
-                          aria-label="Logout"
-                          icon={<AiOutlineLogout />}
-                          onClick={handleLogout}
-                        />
-                        <IconButton
-                          icon={<BellIcon />}
-                          onClick={handleNotificationsOpen}
-                        />
-                      </VStack>
-                    </DrawerBody>
-                  </DrawerContent>
-                </DrawerOverlay>
-              </Drawer>
-            </>
-          ) : (
-            <Stack direction="row" align="center" spacing={4}>
-              <Link to="/dashboard">
-                <Avatar
-                  name={`${data.user.first_name} ${data.user.last_name}`}
-                  size="sm"
-                />
-              </Link>
-              <Text fontWeight="bold">{`${data.user.first_name} ${data.user.last_name}`}</Text>
-              <IconButton
-                icon={<BellIcon />}
-                onClick={handleNotificationsOpen}
-              />
-              <Button onClick={handleLogout} colorScheme="teal">
-                Logout
-              </Button>
-            </Stack>
-          ))}
-      </Stack>
-
-      <Modal isOpen={isNotificationsOpen} onClose={handleNotificationsClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Notifications</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            {notifications.map((notification) => (
-              <Box
-                key={notification.id}
-                bg="white"
-                m={2}
-                p={4}
-                borderRadius="md"
-                boxShadow="md"
-                border="1px solid"
-                borderColor="gray.200"
+          <Flex alignItems={"center"} gap={4}>
+            {/* Notifications Menu */}
+            <Menu>
+              <MenuButton
+                as={Button}
+                rounded={"full"}
+                variant={"link"}
+                cursor={"pointer"}
+                minW={0}
               >
-                <Text fontSize="lg" fontWeight="bold" mb={2}>
-                  {notification.message}
-                </Text>
-                <Text fontSize="sm" color="gray.500">
-                  {new Date(notification.createdAt).toLocaleDateString("en-GB")}
-                </Text>
-              </Box>
-            ))}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+                <BellIcon />
+              </MenuButton>
+              <MenuList>
+                {notifications.map((notification) => {
+                  const notificationDate = new Date(notification.createdAt);
+                  const now = new Date();
+                  const diffInSeconds = Math.abs(
+                    (now - notificationDate) / 1000
+                  );
+                  let timeAgo = "";
+
+                  if (diffInSeconds < 60) {
+                    timeAgo = `${Math.round(diffInSeconds)}s`;
+                  } else if (diffInSeconds < 3600) {
+                    timeAgo = `${Math.round(diffInSeconds / 60)}m`;
+                  } else if (diffInSeconds < 86400) {
+                    timeAgo = `${Math.round(diffInSeconds / 3600)}h`;
+                  } else {
+                    timeAgo = `${Math.round(diffInSeconds / 86400)}d`;
+                  }
+
+                  return (
+                    <>
+                      <Flex key={notification.id} bg="white" m={2} p={4} justifyContent="space-between">
+                        <Text fontSize="md" fontWeight="normal">
+                          {notification.message}
+                        </Text>
+                        <Text fontSize="xs" color="gray.500">
+                          {timeAgo}
+                        </Text>
+                      </Flex>
+                    <MenuDivider />
+                    </>
+                  
+                  );
+                })}
+              </MenuList>
+            </Menu>
+
+            {/* User Menu */}
+            <Menu>
+              <MenuButton
+                as={Button}
+                rounded={"full"}
+                variant={"link"}
+                cursor={"pointer"}
+                minW={0}
+              >
+                <Avatar
+                  size={"sm"}
+                  name={`${savedUser.user.first_name} ${savedUser.user.last_name}`}
+                />
+              </MenuButton>
+              <MenuList>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </MenuList>
+            </Menu>
+          </Flex>
+        </Flex>
+
+        {isOpen ? (
+          <Box pb={4} display={{ md: "none" }}>
+            <Stack as={"nav"} spacing={4}>
+              <NavLink to={"/"}>Home</NavLink>
+              <NavLink to={"/about"}>About</NavLink>
+              <NavLink to={"/contact"}>Contact</NavLink>
+            </Stack>
+          </Box>
+        ) : null}
+      </Box>
+    </>
   );
 }
-
-export default Navbar;

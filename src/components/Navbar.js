@@ -180,7 +180,11 @@ export default function Simple() {
                   name={`${savedUser.user.first_name} ${savedUser.user.last_name}`}
                 />
               </MenuButton>
+  
               <MenuList>
+                <MenuItem>
+                  <Link to={"/dashboard"}>Profile</Link>
+                </MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </MenuList>
             </Menu>

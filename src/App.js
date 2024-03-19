@@ -10,10 +10,10 @@ import axios from "axios";
 import { UserAuthContext, UserAuthProvider } from "./utils/UserAuthContext";
 import { AdminAuthContext, AdminAuthProvider } from "./utils/AdminAuthContext";
 
-
 //import components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Sidebar from "./components/Sidebar";
 
 //import pages
 import NotFoundPage from "./pages/NotFoundPage";
@@ -35,10 +35,8 @@ import AdminTripsPanel from "./pages/admin/AdminTripsPanel";
 import AdminAccommodationsPanel from "./pages/admin/AdminAccommodationPanel";
 import AdminNotificationsPanel from "./pages/admin/AdminNotificationsPanel";
 
-
 // Protected route component for user
 const ProtectedRoute = ({ element }) => {
-
   const { isAuthenticated } = useContext(UserAuthContext);
 
   if (!isAuthenticated) {
@@ -47,25 +45,29 @@ const ProtectedRoute = ({ element }) => {
 
   return (
     <>
-    {React.cloneElement(element, { navbar: <Navbar />, footer: <Footer />})}
-  </>
+      {React.cloneElement(element, { navbar: <Navbar />, footer: <Footer /> })}
+    </>
   );
 };
 
 // Protected route component for admin
 const AdminProtectedRoute = ({ element }) => {
-  const { isAdminAuthenticated } = useContext(AdminAuthContext);  
-   
+  const { isAdminAuthenticated } = useContext(AdminAuthContext);
+
   if (!isAdminAuthenticated) {
     return <Navigate to="/admin/login" />;
   }
-
- return element;
+  return (
+    <>
+      <Sidebar element={element}/>
+    </>
+  );
 };
 
 function AppContent() {
-  const {isAuthenticated, setIsAuthenticated } = useContext(UserAuthContext);
-  const {isAdminAuthenticated,  setIsAdminAuthenticated } = useContext(AdminAuthContext);
+  const { isAuthenticated, setIsAuthenticated } = useContext(UserAuthContext);
+  const { isAdminAuthenticated, setIsAdminAuthenticated } =
+    useContext(AdminAuthContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
 
@@ -78,7 +80,7 @@ function AppContent() {
         );
         setIsAuthenticated(response.data.isLoggedIn);
         setUser(response.data.user);
-        localStorage.setItem('user', JSON.stringify(response.data.isLoggedIn));
+        localStorage.setItem("user", JSON.stringify(response.data.isLoggedIn));
       } catch (error) {
         console.error(error);
       } finally {
@@ -94,7 +96,7 @@ function AppContent() {
         );
         setIsAdminAuthenticated(response.data.isLoggedIn);
         setUser(response.data.user);
-        localStorage.setItem('admin', JSON.stringify(response.data.isLoggedIn));
+        localStorage.setItem("admin", JSON.stringify(response.data.isLoggedIn));
       } catch (error) {
         console.error(error);
       } finally {
@@ -102,24 +104,24 @@ function AppContent() {
       }
     };
 
-    const isUserLoggedIn = JSON.parse(localStorage.getItem('user'));
-  const isAdminLoggedIn = JSON.parse(localStorage.getItem('admin'));
+    const isUserLoggedIn = JSON.parse(localStorage.getItem("user"));
+    const isAdminLoggedIn = JSON.parse(localStorage.getItem("admin"));
 
-  if (isUserLoggedIn !== null) {
-    setIsAuthenticated(isUserLoggedIn);
-    setUser(isUserLoggedIn.user);
-    setLoading(false);
-  } else {
-    checkSession();
-  }
+    if (isUserLoggedIn !== null) {
+      setIsAuthenticated(isUserLoggedIn);
+      setUser(isUserLoggedIn.user);
+      setLoading(false);
+    } else {
+      checkSession();
+    }
 
-  if (isAdminLoggedIn !== null) {
-    setIsAdminAuthenticated(isAdminLoggedIn);
-    setLoading(false);
-  } else {
-    checkAdminSession();
-  }
-}, [setIsAuthenticated, setIsAdminAuthenticated, setUser]);
+    if (isAdminLoggedIn !== null) {
+      setIsAdminAuthenticated(isAdminLoggedIn);
+      setLoading(false);
+    } else {
+      checkAdminSession();
+    }
+  }, [setIsAuthenticated, setIsAdminAuthenticated, setUser]);
 
   if (loading) {
     return <div>Loading...</div>; // Render loading spinner
@@ -180,14 +182,12 @@ function App() {
   return (
     <UserAuthProvider>
       <AdminAuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+        <Router>
+          <AppContent />
+        </Router>
       </AdminAuthProvider>
     </UserAuthProvider>
   );
 }
-
- 
 
 export default App;

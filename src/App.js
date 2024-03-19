@@ -47,7 +47,7 @@ const ProtectedRoute = ({ element }) => {
 
   return (
     <>
-    {React.cloneElement(element, { navbar: <Navbar /> })}
+    {React.cloneElement(element, { navbar: <Navbar />, footer: <Footer />})}
   </>
   );
 };
@@ -57,7 +57,7 @@ const AdminProtectedRoute = ({ element }) => {
   const { isAdminAuthenticated } = useContext(AdminAuthContext);  
    
   if (!isAdminAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/admin/login" />;
   }
 
  return element;
@@ -148,7 +148,7 @@ function AppContent() {
       {/* Admin routes */}
       <Route path="/admin/login" element={<AdminLoginForm />} />
       <Route
-        path="/admin/"
+        path="/admin"
         element={<AdminProtectedRoute element={<AdminDashboard />} />}
       />
       <Route
@@ -182,7 +182,6 @@ function App() {
       <AdminAuthProvider>
       <Router>
         <AppContent />
-        <Footer />
       </Router>
       </AdminAuthProvider>
     </UserAuthProvider>

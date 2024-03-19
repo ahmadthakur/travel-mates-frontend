@@ -33,6 +33,9 @@ export default function Simple() {
   const savedUser = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = async () => {
+    localStorage.removeItem("user");
+      savedUser.user = null;
+      setIsAuthenticated(false);
     try {
       await axios.post(
         `${process.env.REACT_APP_SERVER_URL}/users/users/logout`,
@@ -45,9 +48,8 @@ export default function Simple() {
         duration: 3000,
         isClosable: true,
       });
-
-      localStorage.removeItem("user");
-      setIsAuthenticated(false);
+      
+     
 
       navigate("/login");
     } catch (error) {

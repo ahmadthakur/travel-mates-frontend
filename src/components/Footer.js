@@ -26,7 +26,7 @@ function Footer() {
             About
           </RouterLink>
           <RouterLink
-            to="/admin/login"
+            to="/admin"
             style={{ color: "white", marginLeft: "10px" }}
           >
             Admin login

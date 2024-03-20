@@ -164,7 +164,7 @@ function Dashboard(props) {
             <Tbody>
               {trips.map((trip) => (
                 <Tr key={trip.id}>
-                  <Td> <Icon as={FaMapMarkerAlt} color="teal.700" boxSize={6} mr={4} />{trip.destination.name}</Td>
+                  <Td> <Icon as={FaMapMarkerAlt} color="teal.700" boxSize={6} mr={4} />{trip.name}</Td>
                   <Td>{trip.id}</Td>
                   <Td>{trip.start_date}</Td>
                   <Td>{trip.end_date}</Td>

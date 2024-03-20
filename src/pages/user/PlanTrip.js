@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Box,
   Flex,
@@ -19,19 +19,24 @@ import "leaflet-routing-machine";
 import { FaMap } from "react-icons/fa";
 import axios from "axios";
 import "../../index.css";
+import { UserAuthContext } from "../../utils/UserAuthContext";
 
-function PlanTrip({ user, navbar}) {
+function PlanTrip({ navbar}) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [route, setRoute] = useState(null);
   const location = useLocation();
   const destination = location.state.destination;
+  const { savedUser } = useContext(UserAuthContext);
+  const user = JSON.parse(savedUser);
+  console.log(user);
+
 
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     destination_id: destination.id,
-    user_id: user.id,
+    user_id: user.user.id,
     start_date: "",
     end_date: "",
     notes: "",

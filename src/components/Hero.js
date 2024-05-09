@@ -1,6 +1,6 @@
 import { Box, Button, Text, Center } from "@chakra-ui/react";
 import { Image } from "@chakra-ui/image";
-
+import { Link } from "react-scroll";
 
 function Hero({ title, subtitle }) {
   return (
@@ -25,7 +25,9 @@ function Hero({ title, subtitle }) {
           <Text fontSize="xl" color="white">
             {subtitle}
           </Text>
-          <Button mt={4}>Explore</Button>
+          <Link to="destinations" smooth={true} duration={500}>
+            <Button mt={4}>Explore</Button>
+          </Link>
         </Box>
       </Center>
     </Box>

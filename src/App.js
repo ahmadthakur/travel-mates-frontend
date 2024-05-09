@@ -25,6 +25,8 @@ import Dashboard from "./pages/user/Dashboard";
 import Destinations from "./pages/user/Destinations";
 import DestinationDetails from "./pages/user/DestinationDetails";
 import PlanTrip from "./pages/user/PlanTrip";
+import About from "./pages/user/About";
+import Contact from "./pages/user/Contact";
 
 //import admin pages
 import AdminLoginForm from "./pages/admin/AdminLoginForm";
@@ -174,6 +176,12 @@ function AppContent() {
         element={<AdminProtectedRoute element={<AdminNotificationsPanel />} />}
       />
       <Route path="*" element={<NotFoundPage />} />
+
+      <Route path="/about" element={<ProtectedRoute element={<About />} />} />
+      <Route
+        path="/contact"
+        element={<ProtectedRoute element={<Contact />} />}
+      />
     </Routes>
   );
 }

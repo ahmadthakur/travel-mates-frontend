@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import "./PlanTrip.css";
 import {
   Box,
   Flex,
@@ -10,6 +11,7 @@ import {
   Heading,
   useToast,
   Spinner,
+  Select,
 } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
@@ -21,16 +23,25 @@ import axios from "axios";
 import "../../index.css";
 import { UserAuthContext } from "../../utils/UserAuthContext";
 
-function PlanTrip({ navbar}) {
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
+
+function PlanTrip({ navbar, footer }) {
   const [isLoading, setIsLoading] = useState(true);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [accommodations, setAccommodations] = useState([]);
   const [route, setRoute] = useState(null);
   const location = useLocation();
   const destination = location.state.destination;
+  console.log(destination.city)
   const { savedUser } = useContext(UserAuthContext);
   const user = JSON.parse(savedUser);
   console.log(user);
-
 
   const navigate = useNavigate();
 
@@ -40,6 +51,8 @@ function PlanTrip({ navbar}) {
     start_date: "",
     end_date: "",
     notes: "",
+    trip_name: "",
+    trip_accommodation: "",
   });
 
   function Routing({ from, to }) {
@@ -49,11 +62,9 @@ function PlanTrip({ navbar}) {
       if (from && to) {
         L.Routing.control({
           waypoints: [L.latLng(from[0], from[1]), L.latLng(to[0], to[1])],
-          addWaypoints: false,
           draggableWaypoints: true,
           fitSelectedRoutes: true,
           showAlternatives: false,
-          show: false, // hide the itinerary
 
           routeLine: (route) => {
             const line = L.Routing.line(route, {
@@ -119,9 +130,16 @@ function PlanTrip({ navbar}) {
   };
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      setCurrentLocation([position.coords.latitude, position.coords.longitude]);
-    });
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        setCurrentLocation([
+          position.coords.latitude,
+          position.coords.longitude,
+        ]);
+      });
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
   }, []);
 
   const bounds =
@@ -160,90 +178,132 @@ function PlanTrip({ navbar}) {
       const calculatedRoute = `Route from (${currentLocation[0]}, ${currentLocation[1]}) to (${destination.latitude}, ${destination.longitude})`;
       setRoute(calculatedRoute);
     }
+
+    const fetchAccommodations = async () => {
+      if (destination) {
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${destination.city}`,
+            { withCredentials: true }
+          );
+          console.log(response.data);
+          setAccommodations(response.data);
+        } catch (error) {
+          console.error('Error fetching accommodations:', error);
+        }
+      }
+    };
+    fetchAccommodations();
   }, [currentLocation, destination]);
 
   return (
     <>
-    {navbar}
-    <Box
-      boxShadow="xl" // Increase shadow for better depth perception
-      p={6} // Increase padding for better spacing
-      rounded="lg" // Larger border radius for softer edges
-      bg="white"
-      style={{ height: "100vh", width: "100%" }}
-      mt={20}
-    >
-      <Heading size="xl" mb={6}>
-        <FaMap /> Plan a Trip to {destination.name}
-      </Heading>
-      <Flex direction="row" justify="space-between">
-        <Box flex="1" pl={4} mr={2}>
-          <FormControl id="trip-details" onSubmit={handleSubmit}>
-            <FormLabel fontSize="lg">Start Date</FormLabel>
-            <Input
-              type="date"
-              name="start_date"
-              value={formData.start_date}
-              onChange={handleInputChange}
-              mb={4}
-            />
-
-            <FormLabel fontSize="lg">End Date</FormLabel>
-            <Input
-              type="date"
-              name="end_date"
-              value={formData.end_date}
-              onChange={handleInputChange}
-              mb={4}
-            />
-
-            <FormLabel fontSize="lg">Notes</FormLabel>
-            <Textarea
-              placeholder="Enter notes here"
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              mb={4}
-            />
-
-            <Button
-              mt={4}
-              colorScheme="teal"
-              size="lg"
-              type="submit"
-              onClick={handleSubmit}
-            >
-              Submit
-            </Button>
-          </FormControl>
-        </Box>
-        <Box flex="1" pr={4} ml={2}>
-          <MapContainer
-            bounds={bounds}
-            center={currentLocation}
-            zoom={13}
-            style={{ height: "100%", width: "100%" }}
-          >
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-            <Marker position={currentLocation} icon={startIcon} />
-            {destination && (
-              <Marker
-                position={[destination.latitude, destination.longitude]}
-                icon={endIcon}
+      {navbar}
+      <Box
+        boxShadow="xl" // Increase shadow for better depth perception
+        p={6} // Increase padding for better spacing
+        rounded="lg" // Larger border radius for softer edges
+        bg="white"
+        style={{ height: "100vh", width: "100%" }}
+        mt={20}
+      >
+        <Heading size="xl" mb={6}>
+          <FaMap /> Plan a Trip to {destination.name}
+        </Heading>
+        <Flex direction="row" justify="space-between">
+          <Box flex="1" pl={4} mr={2}>
+            <FormControl id="trip-details" onSubmit={handleSubmit}>
+              <FormLabel fontSize="lg">Trip Name</FormLabel>
+              <Input
+                type="text"
+                name="trip_name"
+                value={formData.trip_name}
+                onChange={handleInputChange}
+                mb={4}
               />
-            )}
-            {currentLocation && destination && (
-              <Routing
-                from={currentLocation}
-                to={[destination.latitude, destination.longitude]}
+
+              <FormLabel fontSize="lg">Start Date</FormLabel>
+              <Input
+                type="date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleInputChange}
+                mb={4}
               />
+
+              <FormLabel fontSize="lg">End Date</FormLabel>
+              <Input
+                type="date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleInputChange}
+                mb={4}
+              />
+
+              <FormLabel fontSize="lg">Notes</FormLabel>
+              <Textarea
+                placeholder="Enter notes here"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                mb={4}
+              />
+
+              <FormLabel fontSize="lg">Accommodation</FormLabel>
+              <Select
+                placeholder="Select accommodation"
+                name="accommodation"
+                value={formData.accommodation}
+                onChange={handleInputChange}
+                mb={4}
+              >
+                {accommodations.map((accommodation) => (
+                  <option key={accommodation.id} value={accommodation.name}>
+                    {accommodation.name}
+                  </option>
+                ))}
+              </Select>
+
+              <Button
+                mt={4}
+                colorScheme="teal"
+                size="lg"
+                type="submit"
+                onClick={handleSubmit}
+              >
+                Submit
+              </Button>
+            </FormControl>
+          </Box>
+          <Box flex="1" pr={4} ml={2}>
+            {currentLocation && (
+              <MapContainer
+                bounds={bounds}
+                center={currentLocation}
+                zoom={13}
+                style={{ height: "100%", width: "100%", zIndex: 0 }}
+              >
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                <Marker position={currentLocation} icon={startIcon} />
+                {destination && (
+                  <Marker
+                    position={[destination.latitude, destination.longitude]}
+                    icon={endIcon}
+                  />
+                )}
+                {currentLocation && destination && (
+                  <Routing
+                    from={currentLocation}
+                    to={[destination.latitude, destination.longitude]}
+                  />
+                )}
+              </MapContainer>
             )}
-          </MapContainer>
-        </Box>
-      </Flex>
-    </Box>
+          </Box>
+        </Flex>
+      </Box>
+      {footer}
     </>
-    
   );
 }
 

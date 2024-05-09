@@ -20,6 +20,7 @@ import {
   MenuDivider,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon, BellIcon } from "@chakra-ui/icons";
+import { FaRegBell } from "react-icons/fa";
 import { UserAuthContext } from "../utils/UserAuthContext";
 import axios from "axios";
 
@@ -90,7 +91,7 @@ export default function Simple() {
         my={4}
         left={4}
         right={4}
-        zIndex={1}
+        zIndex={2}
         shadow="lg"
         borderRadius="xl"
       >
@@ -117,7 +118,7 @@ export default function Simple() {
             </HStack>
           </HStack>
 
-          <Flex alignItems={"center"} gap={4}>
+          <Flex alignItems={"center"} gap={4} >
             {/* Notifications Menu */}
             <Menu>
               <MenuButton
@@ -127,9 +128,9 @@ export default function Simple() {
                 cursor={"pointer"}
                 minW={0}
               >
-                <BellIcon />
+                <FaRegBell />
               </MenuButton>
-              <MenuList>
+              <MenuList  zIndex={2}>
                 {notifications.map((notification) => {
                   const notificationDate = new Date(notification.createdAt);
                   const now = new Date();

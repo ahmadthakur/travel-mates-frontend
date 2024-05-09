@@ -14,6 +14,7 @@ import {
   Alert,
   AlertIcon,
   chakra,
+  Image,
 } from "@chakra-ui/react";
 import { UserAuthContext } from "../../utils/UserAuthContext";
 

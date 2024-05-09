@@ -34,7 +34,7 @@ import {
   useMediaQuery,
 } from "@chakra-ui/react";
 
-function DestinationDetails(props) {
+function DestinationDetails({navbar, footer}) {
   const location = useLocation();
   const destination = location.state.destination;
   const [weather, setWeather] = useState(null);
@@ -71,6 +71,7 @@ function DestinationDetails(props) {
         // Handle error here
       }
     };
+
     fetchWeather();
     fetchForecast();
   }, [destination]);
@@ -145,7 +146,7 @@ function DestinationDetails(props) {
 
   return (
     <>
-    {props.navbar}
+    {navbar}
      <VStack 
       spacing={8}
       align="start"
@@ -276,6 +277,7 @@ function DestinationDetails(props) {
         </VStack>
       </Box>
     </VStack>
+    {footer}
     </>
    
   );

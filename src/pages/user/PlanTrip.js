@@ -38,7 +38,7 @@ function PlanTrip({ navbar, footer }) {
   const [route, setRoute] = useState(null);
   const location = useLocation();
   const destination = location.state.destination;
-  console.log(destination.city)
+  console.log(destination.city);
   const { savedUser } = useContext(UserAuthContext);
   const user = JSON.parse(savedUser);
   console.log(user);
@@ -178,23 +178,30 @@ function PlanTrip({ navbar, footer }) {
       const calculatedRoute = `Route from (${currentLocation[0]}, ${currentLocation[1]}) to (${destination.latitude}, ${destination.longitude})`;
       setRoute(calculatedRoute);
     }
-
-    const fetchAccommodations = async () => {
-      if (destination) {
-        try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${destination.city}`,
-            { withCredentials: true }
-          );
-          console.log(response.data);
-          setAccommodations(response.data);
-        } catch (error) {
-          console.error('Error fetching accommodations:', error);
-        }
-      }
-    };
-    fetchAccommodations();
   }, [currentLocation, destination]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const fetchAccommodations = async () => {
+        if (destination) {
+          try {
+            const response = await axios.get(
+              `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${destination.city}`,
+              { withCredentials: true }
+            );
+            console.log(response.data);
+            setAccommodations(response.data);
+          } catch (error) {
+            console.error("Error fetching accommodations:", error);
+          }
+        }
+      };
+      fetchAccommodations();
+    }, 1000);
+
+    // Cleanup function to clear the timeout if the component unmounts before the timeout finishes
+    return () => clearTimeout(timer);
+  }, [destination]); // Dependency array
 
   return (
     <>
@@ -252,8 +259,8 @@ function PlanTrip({ navbar, footer }) {
               <FormLabel fontSize="lg">Accommodation</FormLabel>
               <Select
                 placeholder="Select accommodation"
-                name="accommodation"
-                value={formData.accommodation}
+                name="trip_accommodation"
+                value={formData.trip_accommodation}
                 onChange={handleInputChange}
                 mb={4}
               >

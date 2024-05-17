@@ -38,7 +38,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
-function Dashboard({navbar, footer}) {
+function Dashboard({ navbar, footer }) {
   const [data, setData] = useState(null);
   const toast = useToast();
   const navigate = useNavigate();
@@ -134,74 +134,81 @@ function Dashboard({navbar, footer}) {
 
   return (
     <>
-     <div >{navbar}</div>
-     
-        <Center height="100vh" mt={20} mb={12}>
+      <div>{navbar}</div>
+      <Center height="auto" mt={28} mb={28}>
         <VStack spacing={{ base: 4, md: 8 }} align="start">
-            <Avatar
-              name={`${data.user.first_name} ${data.user.last_name}`}
-              size="xl"
-              bg="teal.500"
-            />
-            <Heading as="h1" size="xl" color="teal.800">
-              Welcome, {data.user.username}!
-            </Heading>
-            <Heading as="h2" size="lg" color="teal.600">
-              Your Trips
-            </Heading>
-            <Table variant="simple">
-              <Thead>
-                <Tr>
-                  <Th>Destination</Th>
-                  <Th>Booking ID</Th>
-                  <Th>Trip Name</Th>
-                  <Th>Accommodation</Th>
-                  <Th>Start Date</Th>
-                  <Th>End Date</Th>
-                  <Th>Notes</Th>
-                  <Th>Manage</Th>
+          <Avatar
+            name={`${data.user.first_name} ${data.user.last_name}`}
+            size="xl"
+            bg="teal.500"
+          />
+          <Heading as="h1" size="xl" color="teal.800">
+            Welcome, {data.user.username}!
+          </Heading>
+          <Heading as="h2" size="lg" color="teal.600">
+            Your Trips
+          </Heading>
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Destination</Th>
+                <Th>Booking ID</Th>
+                <Th>Trip Name</Th>
+                <Th>Accommodation</Th>
+                <Th>Start Date</Th>
+                <Th>End Date</Th>
+                <Th>Notes</Th>
+                <Th>Manage</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {trips.map((trip) => (
+                <Tr key={trip.id}>
+                  <Td>
+                    {" "}
+                    <Icon
+                      as={FaMapMarkerAlt}
+                      color="teal.700"
+                      boxSize={6}
+                      mr={4}
+                    />
+                    {trip.name}
+                  </Td>
+                  <Td>{trip.id}</Td>
+                  <Td>{trip.trip_name}</Td>
+                  <Td>{trip.trip_accommodation}</Td>
+                  <Td>{trip.start_date}</Td>
+                  <Td>{trip.end_date}</Td>
+                  <Td>{trip.notes}</Td>
+                  <Td>
+                    <Menu>
+                      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
+                        Manage
+                      </MenuButton>
+                      <MenuList>
+                        <MenuItem
+                          icon={<EditIcon />}
+                          onClick={() => handleEdit(trip.id)}
+                        >
+                          Edit
+                        </MenuItem>
+                        <MenuItem
+                          icon={<DeleteIcon />}
+                          onClick={() => handleDelete(trip.id)}
+                        >
+                          Delete
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
+                  </Td>
                 </Tr>
-              </Thead>
-              <Tbody>
-                {trips.map((trip) => (
-                  <Tr key={trip.id}>
-                    <Td> <Icon as={FaMapMarkerAlt} color="teal.700" boxSize={6} mr={4} />{trip.name}</Td>
-                    <Td>{trip.id}</Td>
-                    <Td>{trip.trip_name}</Td>
-                    <Td>{trip.trip_accommodation}</Td>
-                    <Td>{trip.start_date}</Td>
-                    <Td>{trip.end_date}</Td>
-                    <Td>{trip.notes}</Td>
-                    <Td>
-                      <Menu>
-                        <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-                          Manage
-                        </MenuButton>
-                        <MenuList>
-                          <MenuItem
-                            icon={<EditIcon />}
-                            onClick={() => handleEdit(trip.id)}
-                          >
-                            Edit
-                          </MenuItem>
-                          <MenuItem
-                            icon={<DeleteIcon />}
-                            onClick={() => handleDelete(trip.id)}
-                          >
-                            Delete
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </VStack>
-        </Center>
-  
+              ))}
+            </Tbody>
+          </Table>
+        </VStack>
+      </Center>
       {footer}
-   </>
+    </>
   );
 }
 

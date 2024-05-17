@@ -49,7 +49,7 @@ function Destinations({ navbar, footer }) {
       />
         <Element name="destinations">
       <Center mt={8} mx="auto" px={{ base: 5, md: 8 }} maxW="1200px" w="100%" >
-        <Text fontSize="4xl" fontWeight="bold">
+        <Text fontSize="4xl" fontWeight="bold" mt={28}>
           Popular Destinations
         </Text>
       </Center>

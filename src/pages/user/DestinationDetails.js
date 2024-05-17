@@ -42,9 +42,6 @@ function DestinationDetails({navbar, footer}) {
   const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
   const [isCelsius, setIsCelsius] = useState(true);
 
-
-  
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -153,7 +150,7 @@ function DestinationDetails({navbar, footer}) {
       width="100%"
       maxW={isSmallScreen ? "90%" : "60%"}
       m="auto"
-      mt={40}
+      mt={28}
     >
       <Box bg="white" p={8} borderRadius="md" boxShadow="sm" width="100%">
         <VStack spacing={8} align="start">
@@ -177,7 +174,7 @@ function DestinationDetails({navbar, footer}) {
           <Image
             src={destination.image_url}
             alt={destination.name}
-            boxSize={isSmallScreen ? "200px" : "100%"}
+            boxSize={isSmallScreen ? "200px" : "400px"}
             objectFit="cover"
             borderRadius="md"
             width="100%"

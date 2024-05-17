@@ -212,7 +212,7 @@ function PlanTrip({ navbar, footer }) {
         rounded="lg" // Larger border radius for softer edges
         bg="white"
         style={{ height: "100vh", width: "100%" }}
-        mt={20}
+        mt={28}
       >
         <Heading size="xl" mb={6}>
           <FaMap /> Plan a Trip to {destination.name}

@@ -12,6 +12,7 @@ import {
   useToast,
   Spinner,
   Select,
+  useMediaQuery,
 } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
@@ -42,6 +43,8 @@ function PlanTrip({ navbar, footer }) {
   const { savedUser } = useContext(UserAuthContext);
   const user = JSON.parse(savedUser);
   console.log(user);
+
+  const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
 
   const navigate = useNavigate();
 
@@ -217,7 +220,10 @@ function PlanTrip({ navbar, footer }) {
         <Heading size="xl" mb={6}>
           <FaMap /> Plan a Trip to {destination.name}
         </Heading>
-        <Flex direction="row" justify="space-between">
+        <Flex
+          direction={isSmallScreen ? "column" : "row"}
+          justify="space-between"
+        >
           <Box flex="1" pl={4} mr={2}>
             <FormControl id="trip-details" onSubmit={handleSubmit}>
               <FormLabel fontSize="lg">Trip Name</FormLabel>

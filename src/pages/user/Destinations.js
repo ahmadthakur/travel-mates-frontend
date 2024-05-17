@@ -68,7 +68,6 @@ function Destinations({ navbar, footer }) {
                 borderRadius="lg"
                 overflow="hidden"
                 p={5}
-                boxShadow="lg"
                 maxW="300px"
                 as={Flex}
                 direction="column"

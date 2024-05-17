@@ -148,12 +148,21 @@ function DestinationDetails({navbar, footer}) {
       spacing={8}
       align="start"
       width="100%"
-      maxW={isSmallScreen ? "90%" : "60%"}
+      maxW={isSmallScreen ? "100%" : "60%"}
       m="auto"
-      mt={28}
+      mt={isSmallScreen ? 0 : 28}
     >
+      <Image
+            src={destination.image_url}
+            alt={destination.name}
+            boxSize={isSmallScreen ? "400px" : "400px"}
+            objectFit="cover"
+            borderRadius={isSmallScreen ? 0 : "lg"}
+            width="100%"
+          />
       <Box bg="white" p={8} borderRadius="md" boxShadow="sm" width="100%">
         <VStack spacing={8} align="start">
+        
           <Flex justify="space-between" align="center" width="100%">
             <Heading size={isSmallScreen ? "xl" : "2xl"} color="gray.800">
               {destination.name}
@@ -171,14 +180,7 @@ function DestinationDetails({navbar, footer}) {
           <Text fontSize="lg" color="gray.600">
             {destination.description}
           </Text>
-          <Image
-            src={destination.image_url}
-            alt={destination.name}
-            boxSize={isSmallScreen ? "200px" : "400px"}
-            objectFit="cover"
-            borderRadius="md"
-            width="100%"
-          />
+          
 
           {/*-----------------------------------------------------WEATHER------------------------------------------------------*/}
           <Box p={8} borderRadius="md" boxShadow="sm" width="100%">

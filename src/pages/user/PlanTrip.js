@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from "react";
 import "./PlanTrip.css";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import {
   Box,
   Flex,
@@ -12,16 +12,21 @@ import {
   useToast,
   Spinner,
   Select,
-  useMediaQuery,
+  Container,
+  VStack,
+  HStack,
+  Text,
+  Icon,
+  useColorModeValue,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet-routing-machine";
-import { FaMap } from "react-icons/fa";
+import { FaMap, FaCalendarAlt, FaBed, FaStickyNote } from "react-icons/fa";
 import axios from "axios";
-import "../../index.css";
 import { UserAuthContext } from "../../utils/UserAuthContext";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,19 +39,16 @@ L.Icon.Default.mergeOptions({
 
 function PlanTrip({ navbar, footer }) {
   const [isLoading, setIsLoading] = useState(true);
+  const [mapError, setMapError] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [accommodations, setAccommodations] = useState([]);
-  const [route, setRoute] = useState(null);
   const location = useLocation();
   const destination = location.state.destination;
-  console.log(destination.city);
   const { savedUser } = useContext(UserAuthContext);
   const user = JSON.parse(savedUser);
-  console.log(user);
-
-  const [isSmallScreen] = useMediaQuery("(max-width: 600px)");
 
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     destination_id: destination.id,
@@ -58,28 +60,37 @@ function PlanTrip({ navbar, footer }) {
     trip_accommodation: "",
   });
 
+  const bgColor = useColorModeValue("gray.50", "gray.700");
+  const cardBgColor = useColorModeValue("white", "gray.800");
+
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   function Routing({ from, to }) {
     const map = useMap();
 
     useEffect(() => {
       if (from && to) {
-        L.Routing.control({
-          waypoints: [L.latLng(from[0], from[1]), L.latLng(to[0], to[1])],
-          draggableWaypoints: true,
-          fitSelectedRoutes: true,
-          showAlternatives: false,
-
-          routeLine: (route) => {
-            const line = L.Routing.line(route, {
-              styles: [
-                { color: "black", opacity: 0.15, weight: 9 },
-                { color: "white", opacity: 0.8, weight: 6 },
-                { color: "teal", opacity: 1, weight: 2 },
-              ],
-            });
-            return line;
-          },
-        }).addTo(map);
+        try {
+          L.Routing.control({
+            waypoints: [L.latLng(from[0], from[1]), L.latLng(to[0], to[1])],
+            draggableWaypoints: true,
+            fitSelectedRoutes: true,
+            showAlternatives: false,
+            routeLine: (route) => {
+              const line = L.Routing.line(route, {
+                styles: [
+                  { color: "black", opacity: 0.15, weight: 9 },
+                  { color: "white", opacity: 0.8, weight: 6 },
+                  { color: "teal", opacity: 1, weight: 2 },
+                ],
+              });
+              return line;
+            },
+          }).addTo(map);
+        } catch (error) {
+          console.error("Error adding routing control:", error);
+          setMapError("Error loading route. Please try again.");
+        }
       }
       setIsLoading(false);
     }, [from, to, map]);
@@ -87,15 +98,9 @@ function PlanTrip({ navbar, footer }) {
     return null;
   }
 
-  const toast = useToast();
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    console.log(formData);
-
     try {
-      // Make a request to the server...
       const response = await axios.post(
         `${process.env.REACT_APP_SERVER_URL}/api/trips/trips`,
         formData,
@@ -108,13 +113,8 @@ function PlanTrip({ navbar, footer }) {
         duration: 5000,
         isClosable: true,
       });
-
-      console.log(response.data);
-
-      // // Redirect the user to the dashboard
       navigate("/dashboard");
     } catch (error) {
-      // If there's an error, display an error toast
       toast({
         title: "An error occurred.",
         description: "Unable to create your trip.",
@@ -132,18 +132,58 @@ function PlanTrip({ navbar, footer }) {
     });
   };
 
-  useEffect(() => {
+  const getCurrentLocation = useCallback(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setCurrentLocation([
-          position.coords.latitude,
-          position.coords.longitude,
-        ]);
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation([
+            position.coords.latitude,
+            position.coords.longitude,
+          ]);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          setMapError(
+            "Unable to get your current location. Please check your browser settings."
+          );
+          setIsLoading(false);
+        }
+      );
     } else {
       console.error("Geolocation is not supported by this browser.");
+      setMapError("Geolocation is not supported by your browser.");
+      setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    getCurrentLocation();
+  }, [getCurrentLocation]);
+
+  useEffect(() => {
+    const fetchAccommodations = async () => {
+      if (destination) {
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${destination.city}`,
+            { withCredentials: true }
+          );
+          setAccommodations(response.data);
+        } catch (error) {
+          console.error("Error fetching accommodations:", error);
+          toast({
+            title: "Error",
+            description: "Unable to fetch accommodations. Please try again.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      }
+    };
+    fetchAccommodations();
+  }, [destination, toast]);
 
   const bounds =
     currentLocation && destination
@@ -173,148 +213,199 @@ function PlanTrip({ navbar, footer }) {
     shadowSize: [41, 41],
   });
 
-  useEffect(() => {
-    if (currentLocation && destination) {
-      // Calculate route from currentLocation to destination
-      // This is a placeholder, replace with actual route calculation
-
-      const calculatedRoute = `Route from (${currentLocation[0]}, ${currentLocation[1]}) to (${destination.latitude}, ${destination.longitude})`;
-      setRoute(calculatedRoute);
-    }
-  }, [currentLocation, destination]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const fetchAccommodations = async () => {
-        if (destination) {
-          try {
-            const response = await axios.get(
-              `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${destination.city}`,
-              { withCredentials: true }
-            );
-            console.log(response.data);
-            setAccommodations(response.data);
-          } catch (error) {
-            console.error("Error fetching accommodations:", error);
-          }
-        }
-      };
-      fetchAccommodations();
-    }, 1000);
-
-    // Cleanup function to clear the timeout if the component unmounts before the timeout finishes
-    return () => clearTimeout(timer);
-  }, [destination]); // Dependency array
-
   return (
     <>
       {navbar}
-      <Box
-        boxShadow="xl" // Increase shadow for better depth perception
-        p={6} // Increase padding for better spacing
-        rounded="lg" // Larger border radius for softer edges
-        bg="white"
-        style={{ height: "100vh", width: "100%" }}
-        mt={28}
-      >
-        <Heading size="xl" mb={6}>
-          <FaMap /> Plan a Trip to {destination.name}
-        </Heading>
-        <Flex
-          direction={isSmallScreen ? "column" : "row"}
-          justify="space-between"
+      <Container maxW="container.xl" py={8} px={4} mt={{ base: 16, md: 20 }}>
+        <Box
+          boxShadow="xl"
+          p={{ base: 4, md: 8 }}
+          rounded="lg"
+          bg={cardBgColor}
+          mb={8}
         >
-          <Box flex="1" pl={4} mr={2}>
-            <FormControl id="trip-details" onSubmit={handleSubmit}>
-              <FormLabel fontSize="lg">Trip Name</FormLabel>
-              <Input
-                type="text"
-                name="trip_name"
-                value={formData.trip_name}
-                onChange={handleInputChange}
-                mb={4}
-              />
+          <Heading
+            size={{ base: "lg", md: "xl" }}
+            mb={6}
+            display="flex"
+            alignItems="center"
+          >
+            <Icon as={FaMap} mr={2} color="teal.500" />
+            Plan a Trip to {destination.name}
+          </Heading>
+          <Flex direction={{ base: "column", md: "row" }} gap={8}>
+            <VStack spacing={6} align="stretch" flex={1} width="100%">
+              <FormControl id="trip-details" onSubmit={handleSubmit}>
+                <VStack spacing={4} align="stretch">
+                  <FormControl>
+                    <FormLabel
+                      fontSize={{ base: "md", md: "lg" }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Icon as={FaMap} mr={2} color="teal.500" />
+                      Trip Name
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="trip_name"
+                      value={formData.trip_name}
+                      onChange={handleInputChange}
+                    />
+                  </FormControl>
 
-              <FormLabel fontSize="lg">Start Date</FormLabel>
-              <Input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleInputChange}
-                mb={4}
-              />
+                  <Box>
+                    <FormLabel fontSize={{ base: "md", md: "lg" }} mb={2}>
+                      Trip Dates
+                    </FormLabel>
+                    <Flex
+                      direction={{ base: "column", md: "row" }}
+                      gap={{ base: 4, md: 4 }}
+                    >
+                      <FormControl flex={1}>
+                        <FormLabel
+                          fontSize={{ base: "sm", md: "md" }}
+                          display="flex"
+                          alignItems="center"
+                        >
+                          <Icon as={FaCalendarAlt} mr={2} color="teal.500" />
+                          Start Date
+                        </FormLabel>
+                        <Input
+                          type="date"
+                          name="start_date"
+                          value={formData.start_date}
+                          onChange={handleInputChange}
+                        />
+                      </FormControl>
+                      <FormControl flex={1}>
+                        <FormLabel
+                          fontSize={{ base: "sm", md: "md" }}
+                          display="flex"
+                          alignItems="center"
+                        >
+                          <Icon as={FaCalendarAlt} mr={2} color="teal.500" />
+                          End Date
+                        </FormLabel>
+                        <Input
+                          type="date"
+                          name="end_date"
+                          value={formData.end_date}
+                          onChange={handleInputChange}
+                        />
+                      </FormControl>
+                    </Flex>
+                  </Box>
 
-              <FormLabel fontSize="lg">End Date</FormLabel>
-              <Input
-                type="date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleInputChange}
-                mb={4}
-              />
+                  <FormControl>
+                    <FormLabel
+                      fontSize={{ base: "md", md: "lg" }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Icon as={FaStickyNote} mr={2} color="teal.500" />
+                      Notes
+                    </FormLabel>
+                    <Textarea
+                      placeholder="Enter notes here"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleInputChange}
+                      rows={4}
+                    />
+                  </FormControl>
 
-              <FormLabel fontSize="lg">Notes</FormLabel>
-              <Textarea
-                placeholder="Enter notes here"
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                mb={4}
-              />
+                  <FormControl>
+                    <FormLabel
+                      fontSize={{ base: "md", md: "lg" }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Icon as={FaBed} mr={2} color="teal.500" />
+                      Accommodation
+                    </FormLabel>
+                    <Select
+                      placeholder="Select accommodation"
+                      name="trip_accommodation"
+                      value={formData.trip_accommodation}
+                      onChange={handleInputChange}
+                    >
+                      {accommodations.map((accommodation) => (
+                        <option
+                          key={accommodation.id}
+                          value={accommodation.name}
+                        >
+                          {accommodation.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormControl>
 
-              <FormLabel fontSize="lg">Accommodation</FormLabel>
-              <Select
-                placeholder="Select accommodation"
-                name="trip_accommodation"
-                value={formData.trip_accommodation}
-                onChange={handleInputChange}
-                mb={4}
-              >
-                {accommodations.map((accommodation) => (
-                  <option key={accommodation.id} value={accommodation.name}>
-                    {accommodation.name}
-                  </option>
-                ))}
-              </Select>
+                  <Button
+                    mt={4}
+                    colorScheme="teal"
+                    size={{ base: "md", md: "lg" }}
+                    type="submit"
+                    onClick={handleSubmit}
+                    width="full"
+                  >
+                    Plan My Trip
+                  </Button>
+                </VStack>
+              </FormControl>
+            </VStack>
 
-              <Button
-                mt={4}
-                colorScheme="teal"
-                size="lg"
-                type="submit"
-                onClick={handleSubmit}
-              >
-                Submit
-              </Button>
-            </FormControl>
-          </Box>
-          <Box flex="1" pr={4} ml={2}>
-            {currentLocation && (
-              <MapContainer
-                bounds={bounds}
-                center={currentLocation}
-                zoom={13}
-                style={{ height: "100%", width: "100%", zIndex: 0 }}
-              >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                <Marker position={currentLocation} icon={startIcon} />
-                {destination && (
-                  <Marker
-                    position={[destination.latitude, destination.longitude]}
-                    icon={endIcon}
-                  />
-                )}
-                {currentLocation && destination && (
-                  <Routing
-                    from={currentLocation}
-                    to={[destination.latitude, destination.longitude]}
-                  />
-                )}
-              </MapContainer>
-            )}
-          </Box>
-        </Flex>
-      </Box>
+            <Box
+              flex={1}
+              height={{ base: "300px", md: "400px" }}
+              position="relative"
+              borderRadius="lg"
+              overflow="hidden"
+              width="100%"
+            >
+              {isLoading ? (
+                <Flex height="100%" justify="center" align="center">
+                  <Spinner size="xl" color="teal.500" />
+                </Flex>
+              ) : mapError ? (
+                <Flex height="100%" justify="center" align="center">
+                  <Text color="red.500">{mapError}</Text>
+                </Flex>
+              ) : currentLocation ? (
+                <Box position="absolute" top="0" left="0" right="0" bottom="0" overflow={"clip"}>
+                  <MapContainer
+                    bounds={bounds}
+                    center={currentLocation}
+                    zoom={13}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                    <Marker position={currentLocation} icon={startIcon} />
+                    {destination && (
+                      <Marker
+                        position={[destination.latitude, destination.longitude]}
+                        icon={endIcon}
+                      />
+                    )}
+                    {currentLocation && destination && (
+                      <Routing
+                        from={currentLocation}
+                        to={[destination.latitude, destination.longitude]}
+                      />
+                    )}
+                  </MapContainer>
+                </Box>
+              ) : (
+                <Flex height="100%" justify="center" align="center">
+                  <Text>
+                    Unable to load map. Please check your location settings.
+                  </Text>
+                </Flex>
+              )}
+            </Box>
+          </Flex>
+        </Box>
+      </Container>
       {footer}
     </>
   );

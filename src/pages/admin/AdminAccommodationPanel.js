@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -21,395 +22,182 @@ import {
   Td,
   useToast,
   HStack,
+  Container,
+  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { useState, useEffect } from "react";
+import { DeleteIcon, EditIcon, AddIcon } from "@chakra-ui/icons";
 import axios from "axios";
+
+const initialFormState = {
+  name: "",
+  description: "",
+  maxGuests: "",
+  city: "",
+  country: "",
+  imageUrl: "",
+  price: "",
+};
 
 function AdminAccommodationsPanel() {
   const [accommodations, setAccommodations] = useState([]);
+  const [formData, setFormData] = useState(initialFormState);
   const [selectedAccommodation, setSelectedAccommodation] = useState(null);
   const toast = useToast();
+  const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
+  const { isOpen: isOpenNew, onOpen: onOpenNew, onClose: onCloseNew } = useDisclosure();
 
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [maxGuests, setMaxGuests] = useState("");
-  const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [price, setPrice] = useState("");
-
-  const {
-    isOpen: isOpenEdit,
-    onOpen: onOpenEdit,
-    onClose: onCloseEdit,
-  } = useDisclosure();
-  const {
-    isOpen: isOpenNew,
-    onOpen: onOpenNew,
-    onClose: onCloseNew,
-  } = useDisclosure();
-
-  const fetchAccommodations = async () => {
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`
-      );
-      setAccommodations(response.data);
-      console.log(accommodations);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const bgColor = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("gray.800", "white");
 
   useEffect(() => {
     fetchAccommodations();
   }, []);
 
+  const fetchAccommodations = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`);
+      setAccommodations(response.data);
+    } catch (error) {
+      console.error("Error fetching accommodations:", error);
+      showToast("Error fetching accommodations", "error");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const resetForm = () => setFormData(initialFormState);
+
+  const showToast = (title, status) => {
+    toast({
+      title,
+      status,
+      duration: 5000,
+      isClosable: true,
+    });
+  };
+
   const handleEdit = (accommodation) => {
     setSelectedAccommodation(accommodation);
-    setName(accommodation.name);
-    setDescription(accommodation.description);
-    setMaxGuests(accommodation.maxGuests);
-    setCity(accommodation.city);
-    setCountry(accommodation.country);
-    setImageUrl(accommodation.imageUrl);
-    setPrice(accommodation.price);
+    setFormData(accommodation);
     onOpenEdit();
   };
 
   const handleNew = () => {
-    setSelectedAccommodation(null);
-    setName("");
-    setDescription("");
-    setMaxGuests("");
-    setCity("");
-    setCountry("");
-    setImageUrl("");
-    setPrice("");
+    resetForm();
     onOpenNew();
   };
 
-  const handleCreate = async (newAccommodation) => {
+  const handleCreate = async () => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`,
-        newAccommodation,
-        { withCredentials: true }
-      );
-      toast({
-        title: "Accommodation created.",
-        description: "Accommodation successfully created.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`, formData, { withCredentials: true });
+      showToast("Accommodation created successfully", "success");
       fetchAccommodations();
+      onCloseNew();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while creating the accommodation.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error creating accommodation:", error);
+      showToast("Error creating accommodation", "error");
     }
   };
 
-  const handleUpdate = async (updatedAccommodation) => {
+  const handleUpdate = async () => {
     try {
-      await axios.put(
-        `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${updatedAccommodation.id}`,
-        updatedAccommodation,
-        { withCredentials: true }
-      );
-      toast({
-        title: "Accommodation updated.",
-        description: "Accommodation successfully updated.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
+      await axios.put(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${selectedAccommodation.id}`, formData, { withCredentials: true });
+      showToast("Accommodation updated successfully", "success");
       fetchAccommodations();
+      onCloseEdit();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while updating the accommodation.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error updating accommodation:", error);
+      showToast("Error updating accommodation", "error");
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${id}`,
-        { withCredentials: true }
-      );
-      toast({
-        title: "Accommodation deleted.",
-        description: "Accommodation successfully deleted.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
-      fetchAccommodations();
+      await axios.delete(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${id}`, { withCredentials: true });
+      showToast("Accommodation deleted successfully", "success");
+      setAccommodations(accommodations.filter((a) => a.id !== id));
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while deleting the accommodation.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error deleting accommodation:", error);
+      showToast("Error deleting accommodation", "error");
     }
   };
 
-  return (
-    <Box m={4} p={5}>
-      <Heading mb={4}>Accommodations</Heading>
-      <Button onClick={handleNew} colorScheme="blue">
-        Create New Accommodation
-      </Button>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>Name</Th>
-            <Th>Description</Th>
-            <Th>Max Guests</Th>
-            <Th>City</Th>
-            <Th>Country</Th>
-            <Th>Image URL</Th>
-            <Th>Price</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {accommodations.map((accommodation) => (
-            <Tr key={accommodation.id}>
-              <Td>{accommodation.name}</Td>
-              <Td>{accommodation.description}</Td>
-              <Td>{accommodation.maxGuests}</Td>
-              <Td>{accommodation.city}</Td>
-              <Td>{accommodation.country}</Td>
-              <Td>{accommodation.imageUrl}</Td>
-              <Td>{accommodation.price}</Td>
-              <Td>
-                <HStack spacing={3}>
-                  <Button
-                    onClick={() => handleEdit(accommodation)}
-                    colorScheme="teal"
-                    leftIcon={<EditIcon />}
-                    width="100px"
-                  >
-                    Edit
-                  </Button>
+  const AccommodationModal = ({ isOpen, onClose, isEdit }) => (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{isEdit ? "Edit" : "Create New"} Accommodation</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4}>
+            {Object.keys(initialFormState).map((key) => (
+              <FormControl key={key}>
+                <FormLabel>{key.charAt(0).toUpperCase() + key.slice(1)}</FormLabel>
+                <Input name={key} value={formData[key]} onChange={handleInputChange} />
+              </FormControl>
+            ))}
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={isEdit ? handleUpdate : handleCreate}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
 
-                  <Button
-                    onClick={async () => {
-                      await handleDelete(accommodation.id);
-                      const updatedAccommodations = accommodations.filter(
-                        (a) => a.id !== accommodation.id
-                      );
-                      setAccommodations(updatedAccommodations);
-                    }}
-                    colorScheme="red"
-                    leftIcon={<DeleteIcon />}
-                    width="100px"
-                  >
-                    Delete
-                  </Button>
-                </HStack>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
-      <Modal isOpen={isOpenEdit} onClose={onCloseEdit}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Accommodation</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Name</FormLabel>
-              <Input
-                placeholder="Name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Description</FormLabel>
-              <Input
-                placeholder="Description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Max Guests</FormLabel>
-              <Input
-                placeholder="Max Guests"
-                value={maxGuests}
-                onChange={(event) => setMaxGuests(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>City</FormLabel>
-              <Input
-                placeholder="City"
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Country</FormLabel>
-              <Input
-                placeholder="Country"
-                value={country}
-                onChange={(event) => setCountry(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Image URL</FormLabel>
-              <Input
-                placeholder="Image URL"
-                value={imageUrl}
-                onChange={(event) => setImageUrl(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Price</FormLabel>
-              <Input
-                placeholder="Price"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={async () => {
-                const updatedAccommodation = {
-                  id: selectedAccommodation.id,
-                  name,
-                  description,
-                  maxGuests,
-                  city,
-                  country,
-                  imageUrl,
-                  price,
-                };
-                await handleUpdate(updatedAccommodation);
-                onCloseEdit();
-              }}
-            >
-              Save
-            </Button>
-            <Button variant="ghost" onClick={onCloseEdit}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      <Modal isOpen={isOpenNew} onClose={onCloseNew}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create New Accommodation</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Name</FormLabel>
-              <Input
-                placeholder="Name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Description</FormLabel>
-              <Input
-                placeholder="Description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Max Guests</FormLabel>
-              <Input
-                placeholder="Max Guests"
-                value={maxGuests}
-                onChange={(event) => setMaxGuests(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>City</FormLabel>
-              <Input
-                placeholder="City"
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Country</FormLabel>
-              <Input
-                placeholder="Country"
-                value={country}
-                onChange={(event) => setCountry(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Image URL</FormLabel>
-              <Input
-                placeholder="Image URL"
-                value={imageUrl}
-                onChange={(event) => setImageUrl(event.target.value)}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Price</FormLabel>
-              <Input
-                placeholder="Price"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={async () => {
-                const newAccommodation = {
-                  name,
-                  description,
-                  maxGuests,
-                  city,
-                  country,
-                  imageUrl,
-                  price,
-                };
-                await handleCreate(newAccommodation);
-                onCloseNew();
-              }}
-            >
-              Save
-            </Button>
-            <Button variant="ghost" onClick={onCloseNew}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+  return (
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={8} align="stretch">
+        <Heading color={textColor}>Accommodations</Heading>
+        <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={handleNew}>
+          Create New Accommodation
+        </Button>
+        <Box overflowX="auto" bg={bgColor} borderRadius="lg" boxShadow="md">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>Name</Th>
+                <Th>City</Th>
+                <Th>Country</Th>
+                <Th>Max Guests</Th>
+                <Th>Price</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {accommodations.map((accommodation) => (
+                <Tr key={accommodation.id}>
+                  <Td>{accommodation.name}</Td>
+                  <Td>{accommodation.city}</Td>
+                  <Td>{accommodation.country}</Td>
+                  <Td>{accommodation.maxGuests}</Td>
+                  <Td>{accommodation.price}</Td>
+                  <Td>
+                    <HStack spacing={2}>
+                      <Button size="sm" leftIcon={<EditIcon />} colorScheme="teal" onClick={() => handleEdit(accommodation)}>
+                        Edit
+                      </Button>
+                      <Button size="sm" leftIcon={<DeleteIcon />} colorScheme="red" onClick={() => handleDelete(accommodation.id)}>
+                        Delete
+                      </Button>
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </VStack>
+      <AccommodationModal isOpen={isOpenEdit} onClose={onCloseEdit} isEdit={true} />
+      <AccommodationModal isOpen={isOpenNew} onClose={onCloseNew} isEdit={false} />
+    </Container>
   );
 }
 

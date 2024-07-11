@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -21,15 +22,16 @@ import {
   Td,
   useToast,
   HStack,
+  Container,
+  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
-import { useState, useEffect, useCallback } from "react";
+import { DeleteIcon, EditIcon, AddIcon } from "@chakra-ui/icons";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
 function AdminNotificationsPanel() {
   const { UserID } = useParams();
-  console.log(UserID);
   const [notifications, setNotifications] = useState([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const toast = useToast();
@@ -38,16 +40,11 @@ function AdminNotificationsPanel() {
   const [message, setMessage] = useState("");
   const [isRead, setIsRead] = useState(false);
 
-  const {
-    isOpen: isOpenEdit,
-    onOpen: onOpenEdit,
-    onClose: onCloseEdit,
-  } = useDisclosure();
-  const {
-    isOpen: isOpenNew,
-    onOpen: onOpenNew,
-    onClose: onCloseNew,
-  } = useDisclosure();
+  const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
+  const { isOpen: isOpenNew, onOpen: onOpenNew, onClose: onCloseNew } = useDisclosure();
+
+  const bgColor = useColorModeValue("white", "gray.800");
+  const textColor = useColorModeValue("gray.800", "white");
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -56,15 +53,25 @@ function AdminNotificationsPanel() {
         { withCredentials: true }
       );
       setNotifications(response.data);
-      console.log(UserID);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching notifications:", error);
+      showToast("Error fetching notifications", "error");
     }
   }, [UserID]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [UserID]);
+  }, [fetchNotifications]);
+
+  const showToast = (title, status, description) => {
+    toast({
+      title,
+      description,
+      status,
+      duration: 5000,
+      isClosable: true,
+    });
+  };
 
   const handleEdit = (notification) => {
     setSelectedNotification(notification);
@@ -76,64 +83,43 @@ function AdminNotificationsPanel() {
 
   const handleNew = () => {
     setSelectedNotification(null);
-    setUserId("");
+    setUserId(UserID);
     setMessage("");
     setIsRead(false);
     onOpenNew();
   };
 
-  const handleCreate = async (newNotification) => {
+  const handleCreate = async () => {
     try {
+      const newNotification = { userId: UserID, message, isRead };
       await axios.post(
         `${process.env.REACT_APP_SERVER_URL}/api/notifications/notifications`,
         newNotification,
         { withCredentials: true }
       );
-      toast({
-        title: "Notification created.",
-        description: "Notification successfully created.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
-
+      showToast("Notification created", "success", "Notification successfully created.");
       fetchNotifications();
+      onCloseNew();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while creating the notification.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error creating notification:", error);
+      showToast("Error", "error", "An error occurred while creating the notification.");
     }
   };
 
-  const handleUpdate = async (updatedNotification) => {
+  const handleUpdate = async () => {
     try {
+      const updatedNotification = { id: selectedNotification.id, userId: UserID, message, isRead };
       await axios.put(
         `${process.env.REACT_APP_SERVER_URL}/api/notifications/${updatedNotification.id}`,
         updatedNotification,
         { withCredentials: true }
       );
-      toast({
-        title: "Notification updated.",
-        description: "Notification successfully updated.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
+      showToast("Notification updated", "success", "Notification successfully updated.");
       fetchNotifications();
+      onCloseEdit();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while updating the notification.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error updating notification:", error);
+      showToast("Error", "error", "An error occurred while updating the notification.");
     }
   };
 
@@ -143,155 +129,84 @@ function AdminNotificationsPanel() {
         `${process.env.REACT_APP_SERVER_URL}/api/notifications/${id}`,
         { withCredentials: true }
       );
-      toast({
-        title: "Notification deleted.",
-        description: "Notification successfully deleted.",
-        status: "success",
-        duration: 9000,
-        isClosable: true,
-      });
+      showToast("Notification deleted", "success", "Notification successfully deleted.");
       fetchNotifications();
     } catch (error) {
-      console.error(error);
-      toast({
-        title: "An error occurred.",
-        description: "An error occurred while deleting the notification.",
-        status: "error",
-        duration: 9000,
-        isClosable: true,
-      });
+      console.error("Error deleting notification:", error);
+      showToast("Error", "error", "An error occurred while deleting the notification.");
     }
   };
 
-  return (
-    <Box m={4} p={5} height="100vh">
-      <Heading mb={4}>Notifications</Heading>
-      <Button onClick={handleNew} colorScheme="blue">
-        Create New Notification
-      </Button>
-      <Table variant="simple">
-        <Thead>
-          <Tr>
-            <Th>User ID</Th>
-            <Th>Message</Th>
-            <Th>Is Read</Th>
-            <Th>Actions</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {notifications.map((notification) => (
-            <Tr key={notification.id}>
-              <Td>{notification.userId}</Td>
-              <Td>{notification.message}</Td>
-              <Td>{notification.isRead}</Td>
-              <Td>
-                <HStack spacing={3}>
-                  <Button
-                    onClick={() => handleEdit(notification)}
-                    colorScheme="teal"
-                    leftIcon={<EditIcon />}
-                    width="100px"
-                  >
-                    Edit
-                  </Button>
+  const NotificationModal = ({ isOpen, onClose, isEdit }) => (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{isEdit ? "Edit" : "Create New"} Notification</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <FormControl>
+            <FormLabel>Message</FormLabel>
+            <Input
+              placeholder="Message"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+            />
+          </FormControl>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={isEdit ? handleUpdate : handleCreate}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
 
-                  <Button
-                    onClick={async () => {
-                      await handleDelete(notification.id);
-                      const updatedNotifications = notifications.filter(
-                        (n) => n.id !== notification.id
-                      );
-                      setNotifications(updatedNotifications);
-                    }}
-                    colorScheme="red"
-                    leftIcon={<DeleteIcon />}
-                    width="100px"
-                  >
-                    Delete
-                  </Button>
-                </HStack>
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
-      <Modal isOpen={isOpenEdit} onClose={onCloseEdit}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Notification</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Message</FormLabel>
-              <Input
-                placeholder="Message"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-              />
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={async () => {
-                const updatedNotification = {
-                  id: selectedNotification.id,
-                  userId: UserID,
-                  message,
-                  isRead,
-                };
-                await handleUpdate(updatedNotification);
-                onCloseEdit();
-              }}
-            >
-              Save
-            </Button>
-            <Button variant="ghost" onClick={onCloseEdit}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      <Modal isOpen={isOpenNew} onClose={onCloseNew}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create New Notification</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Message</FormLabel>
-              <Input
-                placeholder="Message"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-              />
-            </FormControl>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="blue"
-              mr={3}
-              onClick={async () => {
-                const newNotification = {
-                  userId: UserID,
-                  message,
-                  isRead,
-                };
-                await handleCreate(newNotification);
-                console.log(newNotification);
-                onCloseNew();
-              }}
-            >
-              Save
-            </Button>
-            <Button variant="ghost" onClick={onCloseNew}>
-              Cancel
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </Box>
+  return (
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={8} align="stretch">
+        <Heading color={textColor}>Notifications for User ID: {UserID}</Heading>
+        <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={handleNew}>
+          Create New Notification
+        </Button>
+        <Box overflowX="auto" bg={bgColor} borderRadius="lg" boxShadow="md">
+          <Table variant="simple">
+            <Thead>
+              <Tr>
+                <Th>User ID</Th>
+                <Th>Message</Th>
+                <Th>Is Read</Th>
+                <Th>Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {notifications.map((notification) => (
+                <Tr key={notification.id}>
+                  <Td>{notification.userId}</Td>
+                  <Td>{notification.message}</Td>
+                  <Td>{notification.isRead ? "Yes" : "No"}</Td>
+                  <Td>
+                    <HStack spacing={2}>
+                      <Button size="sm" leftIcon={<EditIcon />} colorScheme="teal" onClick={() => handleEdit(notification)}>
+                        Edit
+                      </Button>
+                      <Button size="sm" leftIcon={<DeleteIcon />} colorScheme="red" onClick={() => handleDelete(notification.id)}>
+                        Delete
+                      </Button>
+                    </HStack>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+      </VStack>
+      <NotificationModal isOpen={isOpenEdit} onClose={onCloseEdit} isEdit={true} />
+      <NotificationModal isOpen={isOpenNew} onClose={onCloseNew} isEdit={false} />
+    </Container>
   );
 }
 

@@ -336,6 +336,7 @@ function PlanTrip({ navbar, footer }) {
                           value={accommodation.name}
                         >
                           {accommodation.name}
+                          {` - $${accommodation.price}`}
                         </option>
                       ))}
                     </Select>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -42,9 +42,56 @@ const initialFormState = {
   longitude: "",
 };
 
+function DestinationModal({ isOpen, onClose, isEdit, initialData, onSave }) {
+  const [formData, setFormData] = useState(initialData || initialFormState);
+
+  useEffect(() => {
+    setFormData(initialData || initialFormState);
+  }, [initialData]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    onSave(formData);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{isEdit ? "Edit" : "Create New"} Destination</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4}>
+            {Object.keys(initialFormState).map((key) => (
+              <FormControl key={key}>
+                <FormLabel>{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</FormLabel>
+                {key === 'description' || key === 'attractions' || key === 'recommended_activities' ? (
+                  <Textarea name={key} value={formData[key] || ''} onChange={handleInputChange} />
+                ) : (
+                  <Input name={key} value={formData[key] || ''} onChange={handleInputChange} />
+                )}
+              </FormControl>
+            ))}
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={handleSave}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+}
+
 function AdminDestinationsPanel() {
   const [destinations, setDestinations] = useState([]);
-  const [formData, setFormData] = useState(initialFormState);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const toast = useToast();
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
@@ -53,11 +100,7 @@ function AdminDestinationsPanel() {
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
 
-  useEffect(() => {
-    fetchDestinations();
-  }, []);
-
-  const fetchDestinations = async () => {
+  const fetchDestinations = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`);
       setDestinations(response.data);
@@ -65,14 +108,11 @@ function AdminDestinationsPanel() {
       console.error("Error fetching destinations:", error);
       showToast("Error fetching destinations", "error");
     }
-  };
+  }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const resetForm = () => setFormData(initialFormState);
+  useEffect(() => {
+    fetchDestinations();
+  }, [fetchDestinations]);
 
   const showToast = (title, status) => {
     toast({
@@ -85,18 +125,17 @@ function AdminDestinationsPanel() {
 
   const handleEdit = (destination) => {
     setSelectedDestination(destination);
-    setFormData(destination);
     onOpenEdit();
   };
 
   const handleNew = () => {
-    resetForm();
+    setSelectedDestination(null);
     onOpenNew();
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (newDestination) => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`, formData, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`, newDestination, { withCredentials: true });
       showToast("Destination created successfully", "success");
       fetchDestinations();
       onCloseNew();
@@ -106,9 +145,9 @@ function AdminDestinationsPanel() {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (updatedDestination) => {
     try {
-      await axios.put(`${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`, { ...formData, id: selectedDestination.id }, { withCredentials: true });
+      await axios.put(`${process.env.REACT_APP_SERVER_URL}/api/destinations/destinations`, { ...updatedDestination, id: selectedDestination.id }, { withCredentials: true });
       showToast("Destination updated successfully", "success");
       fetchDestinations();
       onCloseEdit();
@@ -128,36 +167,6 @@ function AdminDestinationsPanel() {
       showToast("Error deleting destination", "error");
     }
   };
-
-  const DestinationModal = ({ isOpen, onClose, isEdit }) => (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>{isEdit ? "Edit" : "Create New"} Destination</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4}>
-            {Object.keys(initialFormState).map((key) => (
-              <FormControl key={key}>
-                <FormLabel>{key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}</FormLabel>
-                {key === 'description' || key === 'attractions' || key === 'recommended_activities' ? (
-                  <Textarea name={key} value={formData[key]} onChange={handleInputChange} />
-                ) : (
-                  <Input name={key} value={formData[key]} onChange={handleInputChange} />
-                )}
-              </FormControl>
-            ))}
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={isEdit ? handleUpdate : handleCreate}>
-            Save
-          </Button>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -198,8 +207,20 @@ function AdminDestinationsPanel() {
           </Table>
         </Box>
       </VStack>
-      <DestinationModal isOpen={isOpenEdit} onClose={onCloseEdit} isEdit={true} />
-      <DestinationModal isOpen={isOpenNew} onClose={onCloseNew} isEdit={false} />
+      <DestinationModal 
+        isOpen={isOpenEdit} 
+        onClose={onCloseEdit} 
+        isEdit={true} 
+        initialData={selectedDestination}
+        onSave={handleUpdate}
+      />
+      <DestinationModal 
+        isOpen={isOpenNew} 
+        onClose={onCloseNew} 
+        isEdit={false} 
+        initialData={null}
+        onSave={handleCreate}
+      />
     </Container>
   );
 }

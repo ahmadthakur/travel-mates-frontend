@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Button,
@@ -39,9 +39,56 @@ const initialFormState = {
   price: "",
 };
 
+function AccommodationModal({ isOpen, onClose, isEdit, initialData, onSave }) {
+  const [formData, setFormData] = useState(initialData || initialFormState);
+
+  useEffect(() => {
+    setFormData(initialData || initialFormState);
+  }, [initialData]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    onSave(formData);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{isEdit ? "Edit" : "Create New"} Accommodation</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <VStack spacing={4}>
+            {Object.keys(initialFormState).map((key) => (
+              <FormControl key={key}>
+                <FormLabel>{key.charAt(0).toUpperCase() + key.slice(1)}</FormLabel>
+                <Input 
+                  name={key} 
+                  value={formData[key] || ''} 
+                  onChange={handleInputChange} 
+                />
+              </FormControl>
+            ))}
+          </VStack>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={handleSave}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+}
+
 function AdminAccommodationsPanel() {
   const [accommodations, setAccommodations] = useState([]);
-  const [formData, setFormData] = useState(initialFormState);
   const [selectedAccommodation, setSelectedAccommodation] = useState(null);
   const toast = useToast();
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
@@ -50,11 +97,7 @@ function AdminAccommodationsPanel() {
   const bgColor = useColorModeValue("white", "gray.800");
   const textColor = useColorModeValue("gray.800", "white");
 
-  useEffect(() => {
-    fetchAccommodations();
-  }, []);
-
-  const fetchAccommodations = async () => {
+  const fetchAccommodations = useCallback(async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`);
       setAccommodations(response.data);
@@ -62,14 +105,11 @@ function AdminAccommodationsPanel() {
       console.error("Error fetching accommodations:", error);
       showToast("Error fetching accommodations", "error");
     }
-  };
+  }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const resetForm = () => setFormData(initialFormState);
+  useEffect(() => {
+    fetchAccommodations();
+  }, [fetchAccommodations]);
 
   const showToast = (title, status) => {
     toast({
@@ -82,33 +122,30 @@ function AdminAccommodationsPanel() {
 
   const handleEdit = (accommodation) => {
     setSelectedAccommodation(accommodation);
-    setFormData(accommodation);
     onOpenEdit();
   };
 
   const handleNew = () => {
-    resetForm();
+    setSelectedAccommodation(null);
     onOpenNew();
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (newAccommodation) => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`, formData, { withCredentials: true });
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations`, newAccommodation, { withCredentials: true });
       showToast("Accommodation created successfully", "success");
       fetchAccommodations();
-      onCloseNew();
     } catch (error) {
       console.error("Error creating accommodation:", error);
       showToast("Error creating accommodation", "error");
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (updatedAccommodation) => {
     try {
-      await axios.put(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${selectedAccommodation.id}`, formData, { withCredentials: true });
+      await axios.put(`${process.env.REACT_APP_SERVER_URL}/api/accommodations/accommodations/${updatedAccommodation.id}`, updatedAccommodation, { withCredentials: true });
       showToast("Accommodation updated successfully", "success");
       fetchAccommodations();
-      onCloseEdit();
     } catch (error) {
       console.error("Error updating accommodation:", error);
       showToast("Error updating accommodation", "error");
@@ -125,32 +162,6 @@ function AdminAccommodationsPanel() {
       showToast("Error deleting accommodation", "error");
     }
   };
-
-  const AccommodationModal = ({ isOpen, onClose, isEdit }) => (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>{isEdit ? "Edit" : "Create New"} Accommodation</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <VStack spacing={4}>
-            {Object.keys(initialFormState).map((key) => (
-              <FormControl key={key}>
-                <FormLabel>{key.charAt(0).toUpperCase() + key.slice(1)}</FormLabel>
-                <Input name={key} value={formData[key]} onChange={handleInputChange} />
-              </FormControl>
-            ))}
-          </VStack>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={isEdit ? handleUpdate : handleCreate}>
-            Save
-          </Button>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -195,8 +206,20 @@ function AdminAccommodationsPanel() {
           </Table>
         </Box>
       </VStack>
-      <AccommodationModal isOpen={isOpenEdit} onClose={onCloseEdit} isEdit={true} />
-      <AccommodationModal isOpen={isOpenNew} onClose={onCloseNew} isEdit={false} />
+      <AccommodationModal 
+        isOpen={isOpenEdit} 
+        onClose={onCloseEdit} 
+        isEdit={true} 
+        initialData={selectedAccommodation} 
+        onSave={handleUpdate}
+      />
+      <AccommodationModal 
+        isOpen={isOpenNew} 
+        onClose={onCloseNew} 
+        isEdit={false} 
+        initialData={initialFormState} 
+        onSave={handleCreate}
+      />
     </Container>
   );
 }

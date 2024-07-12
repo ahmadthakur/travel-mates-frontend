@@ -25,21 +25,80 @@ import {
   Container,
   VStack,
   useColorModeValue,
+  Switch,
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon, AddIcon } from "@chakra-ui/icons";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+
+const initialFormState = {
+  message: "",
+  isRead: false,
+};
+
+function NotificationModal({ isOpen, onClose, isEdit, initialData, onSave }) {
+  const [formData, setFormData] = useState(initialData || initialFormState);
+
+  useEffect(() => {
+    setFormData(initialData || initialFormState);
+  }, [initialData]);
+
+  const handleInputChange = (e) => {
+    const { name, value, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'isRead' ? checked : value
+    }));
+  };
+
+  const handleSave = () => {
+    onSave(formData);
+    onClose();
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{isEdit ? "Edit" : "Create New"} Notification</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <FormControl mb={4}>
+            <FormLabel>Message</FormLabel>
+            <Input
+              name="message"
+              placeholder="Message"
+              value={formData.message}
+              onChange={handleInputChange}
+            />
+          </FormControl>
+          <FormControl display="flex" alignItems="center">
+            <FormLabel mb="0">Is Read</FormLabel>
+            <Switch
+              name="isRead"
+              isChecked={formData.isRead}
+              onChange={handleInputChange}
+            />
+          </FormControl>
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={handleSave}>
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+}
 
 function AdminNotificationsPanel() {
   const { UserID } = useParams();
   const [notifications, setNotifications] = useState([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const toast = useToast();
-
-  const [userId, setUserId] = useState("");
-  const [message, setMessage] = useState("");
-  const [isRead, setIsRead] = useState(false);
-
   const { isOpen: isOpenEdit, onOpen: onOpenEdit, onClose: onCloseEdit } = useDisclosure();
   const { isOpen: isOpenNew, onOpen: onOpenNew, onClose: onCloseNew } = useDisclosure();
 
@@ -75,26 +134,19 @@ function AdminNotificationsPanel() {
 
   const handleEdit = (notification) => {
     setSelectedNotification(notification);
-    setUserId(notification.userId);
-    setMessage(notification.message);
-    setIsRead(notification.isRead);
     onOpenEdit();
   };
 
   const handleNew = () => {
     setSelectedNotification(null);
-    setUserId(UserID);
-    setMessage("");
-    setIsRead(false);
     onOpenNew();
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (newNotification) => {
     try {
-      const newNotification = { userId: UserID, message, isRead };
       await axios.post(
         `${process.env.REACT_APP_SERVER_URL}/api/notifications/notifications`,
-        newNotification,
+        { ...newNotification, userId: UserID },
         { withCredentials: true }
       );
       showToast("Notification created", "success", "Notification successfully created.");
@@ -106,12 +158,11 @@ function AdminNotificationsPanel() {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (updatedNotification) => {
     try {
-      const updatedNotification = { id: selectedNotification.id, userId: UserID, message, isRead };
       await axios.put(
-        `${process.env.REACT_APP_SERVER_URL}/api/notifications/${updatedNotification.id}`,
-        updatedNotification,
+        `${process.env.REACT_APP_SERVER_URL}/api/notifications/${selectedNotification.id}`,
+        { ...updatedNotification, id: selectedNotification.id, userId: UserID },
         { withCredentials: true }
       );
       showToast("Notification updated", "success", "Notification successfully updated.");
@@ -136,34 +187,6 @@ function AdminNotificationsPanel() {
       showToast("Error", "error", "An error occurred while deleting the notification.");
     }
   };
-
-  const NotificationModal = ({ isOpen, onClose, isEdit }) => (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>{isEdit ? "Edit" : "Create New"} Notification</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <FormControl>
-            <FormLabel>Message</FormLabel>
-            <Input
-              placeholder="Message"
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-            />
-          </FormControl>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} onClick={isEdit ? handleUpdate : handleCreate}>
-            Save
-          </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -204,8 +227,20 @@ function AdminNotificationsPanel() {
           </Table>
         </Box>
       </VStack>
-      <NotificationModal isOpen={isOpenEdit} onClose={onCloseEdit} isEdit={true} />
-      <NotificationModal isOpen={isOpenNew} onClose={onCloseNew} isEdit={false} />
+      <NotificationModal 
+        isOpen={isOpenEdit} 
+        onClose={onCloseEdit} 
+        isEdit={true} 
+        initialData={selectedNotification}
+        onSave={handleUpdate}
+      />
+      <NotificationModal 
+        isOpen={isOpenNew} 
+        onClose={onCloseNew} 
+        isEdit={false} 
+        initialData={null}
+        onSave={handleCreate}
+      />
     </Container>
   );
 }
